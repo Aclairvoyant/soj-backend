@@ -8,8 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 /**
  * 用户服务测试
  *
- * @author <a href="https://github.com/lisjdddd">程序员鱼皮</a>
- * @from <a href="https://sjdddd.icu">编程导航知识星球</a>
+  
  */
 @SpringBootTest
 public class UserServiceTest {
@@ -22,11 +21,13 @@ public class UserServiceTest {
         String userAccount = "sjdddd";
         String userPassword = "";
         String checkPassword = "123456";
+        String email = "295816492@qq.com";
+        String emailCode = "123456";
         try {
-            long result = userService.userRegister(userAccount, userPassword, checkPassword);
+            long result = userService.userRegister(userAccount, userPassword, checkPassword, email, emailCode);
             Assertions.assertEquals(-1, result);
             userAccount = "yu";
-            result = userService.userRegister(userAccount, userPassword, checkPassword);
+            result = userService.userRegister(userAccount, userPassword, checkPassword, email, emailCode);
             Assertions.assertEquals(-1, result);
         } catch (Exception e) {
 

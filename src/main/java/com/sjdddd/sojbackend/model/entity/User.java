@@ -11,9 +11,6 @@ import lombok.Data;
 
 /**
  * 用户
- *
- * @author <a href="https://github.com/lisjdddd">程序员鱼皮</a>
- * @from <a href="https://sjdddd.icu">编程导航知识星球</a>
  */
 @TableName(value = "user")
 @Data
@@ -34,6 +31,11 @@ public class User implements Serializable {
      * 用户密码
      */
     private String userPassword;
+
+    /**
+     * 用户邮箱
+     */
+    private String email;
 
     /**
      * 开放平台id

@@ -28,9 +28,6 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 帖子接口
- *
- * @author <a href="https://github.com/lisjdddd">程序员鱼皮</a>
- * @from <a href="https://sjdddd.icu">编程导航知识星球</a>
  */
 @RestController
 @RequestMapping("/post")

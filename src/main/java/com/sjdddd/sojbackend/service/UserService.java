@@ -2,6 +2,9 @@ package com.sjdddd.sojbackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.sjdddd.sojbackend.common.BaseResponse;
+import com.sjdddd.sojbackend.model.dto.user.UserForgetPasswordRequest;
+import com.sjdddd.sojbackend.model.dto.user.UserLoginByMailRequest;
 import com.sjdddd.sojbackend.model.dto.user.UserQueryRequest;
 import com.sjdddd.sojbackend.model.entity.User;
 import com.sjdddd.sojbackend.model.vo.LoginUserVO;
@@ -13,10 +16,19 @@ import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 /**
  * 用户服务
  *
- * @author <a href="https://github.com/lisjdddd">程序员鱼皮</a>
- * @from <a href="https://sjdddd.icu">编程导航知识星球</a>
+
  */
 public interface UserService extends IService<User> {
+
+//    /**
+//     * 用户注册
+//     *
+//     * @param userAccount   用户账户
+//     * @param userPassword  用户密码
+//     * @param checkPassword 校验密码
+//     * @return 新用户 id
+//     */
+//    long userRegister(String userAccount, String userPassword, String checkPassword);
 
     /**
      * 用户注册
@@ -24,9 +36,11 @@ public interface UserService extends IService<User> {
      * @param userAccount   用户账户
      * @param userPassword  用户密码
      * @param checkPassword 校验密码
+     * @param email 邮箱
+     * @param emailCode 邮箱验证码
      * @return 新用户 id
      */
-    long userRegister(String userAccount, String userPassword, String checkPassword);
+    long userRegister(String userAccount, String userPassword, String checkPassword, String email, String emailCode);
 
     /**
      * 用户登录
@@ -118,4 +132,29 @@ public interface UserService extends IService<User> {
      */
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 
+
+    /**
+     * 发送邮箱验证码
+     *
+     * @param mail
+     * @return
+     */
+    BaseResponse<String> sendMailCode(String mail);
+
+
+    /**
+     * 通过邮箱进行登录
+     *
+     * @param mailRequest
+     * @param request
+     * @return
+     */
+    BaseResponse<LoginUserVO> loginByMail(UserLoginByMailRequest mailRequest, HttpServletRequest request);
+
+    /**
+     * 忘记密码
+     * @param userForgetPasswordRequest
+     * @return
+     */
+    BaseResponse<String> forgetPassword(UserForgetPasswordRequest userForgetPasswordRequest);
 }

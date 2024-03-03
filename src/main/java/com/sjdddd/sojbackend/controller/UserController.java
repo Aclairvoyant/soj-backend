@@ -10,12 +10,7 @@ import com.sjdddd.sojbackend.config.WxOpenConfig;
 import com.sjdddd.sojbackend.constant.UserConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.exception.ThrowUtils;
-import com.sjdddd.sojbackend.model.dto.user.UserAddRequest;
-import com.sjdddd.sojbackend.model.dto.user.UserLoginRequest;
-import com.sjdddd.sojbackend.model.dto.user.UserQueryRequest;
-import com.sjdddd.sojbackend.model.dto.user.UserRegisterRequest;
-import com.sjdddd.sojbackend.model.dto.user.UserUpdateMyRequest;
-import com.sjdddd.sojbackend.model.dto.user.UserUpdateRequest;
+import com.sjdddd.sojbackend.model.dto.user.*;
 import com.sjdddd.sojbackend.model.entity.User;
 import com.sjdddd.sojbackend.model.vo.LoginUserVO;
 import com.sjdddd.sojbackend.model.vo.UserVO;
@@ -39,9 +34,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 用户接口
- *
- * @author <a href="https://github.com/lisjdddd">程序员鱼皮</a>
- * @from <a href="https://sjdddd.icu">编程导航知识星球</a>
  */
 @RestController
 @RequestMapping("/user")
@@ -55,6 +47,34 @@ public class UserController {
     private WxOpenConfig wxOpenConfig;
 
     // region 登录相关
+
+
+    /**
+     * 邮箱登录
+     * @param mailRequest
+     * @param request
+     * @return
+     */
+    @PostMapping  ("/loginByMail")
+    public BaseResponse<LoginUserVO> loginByMail(@RequestBody UserLoginByMailRequest mailRequest , HttpServletRequest request) {
+        return userService.loginByMail(mailRequest,request);
+    }
+
+    @PostMapping("/forgetPassword")
+    public BaseResponse<String> forgetPassword(@RequestBody UserForgetPasswordRequest userForgetPasswordRequest) {
+        return userService.forgetPassword(userForgetPasswordRequest);
+    }
+
+    /**
+     * 发送邮箱验证码
+     * @param mail
+     * @return
+     */
+    @GetMapping ("/sendMailCode")
+    public BaseResponse<String> sendMailCode(@RequestParam String mail) {
+        return userService.sendMailCode(mail);
+    }
+
 
     /**
      * 用户注册
@@ -70,10 +90,12 @@ public class UserController {
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
+        String email = userRegisterRequest.getEmail();
+        String emailCode = userRegisterRequest.getEmailCode();
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             return null;
         }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword, email, emailCode);
         return ResultUtils.success(result);
     }
 
