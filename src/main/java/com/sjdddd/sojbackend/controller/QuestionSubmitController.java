@@ -4,7 +4,7 @@ import com.sjdddd.sojbackend.common.BaseResponse;
 import com.sjdddd.sojbackend.common.ErrorCode;
 import com.sjdddd.sojbackend.common.ResultUtils;
 import com.sjdddd.sojbackend.exception.BusinessException;
-import com.sjdddd.sojbackend.model.dto.postthumb.QuestionSubmitAddRequest;
+import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.sjdddd.sojbackend.model.entity.User;
 import com.sjdddd.sojbackend.service.QuestionSubmitService;
 import com.sjdddd.sojbackend.service.UserService;
@@ -32,23 +32,22 @@ public class QuestionSubmitController {
     private UserService userService;
 
     /**
-     * 点赞 / 取消点赞
+     * 提交题目
      *
      * @param questionSubmitAddRequest
      * @param request
-     * @return resultNum 本次点赞变化数
+     * @return 提交记录id
      */
     @PostMapping("/")
-    public BaseResponse<Integer> doThumb(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
+    public BaseResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
             HttpServletRequest request) {
-        if (questionSubmitAddRequest == null || questionSubmitAddRequest.getPostId() <= 0) {
+        if (questionSubmitAddRequest == null || questionSubmitAddRequest.getQuestionId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // 登录才能点赞
+        // 登录才能提交
         final User loginUser = userService.getLoginUser(request);
-        long postId = questionSubmitAddRequest.getPostId();
-        int result = questionSubmitService.doQuestionSubmit(postId, loginUser);
-        return ResultUtils.success(result);
+        long questionSubmitId = questionSubmitService.doQuestionSubmit(questionSubmitAddRequest, loginUser);
+        return ResultUtils.success(questionSubmitId);
     }
 
 }
