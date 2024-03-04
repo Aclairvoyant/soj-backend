@@ -10,10 +10,7 @@ import com.sjdddd.sojbackend.common.ResultUtils;
 import com.sjdddd.sojbackend.constant.UserConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.exception.ThrowUtils;
-import com.sjdddd.sojbackend.model.dto.question.QuestionAddRequest;
-import com.sjdddd.sojbackend.model.dto.question.QuestionEditRequest;
-import com.sjdddd.sojbackend.model.dto.question.QuestionQueryRequest;
-import com.sjdddd.sojbackend.model.dto.question.QuestionUpdateRequest;
+import com.sjdddd.sojbackend.model.dto.question.*;
 import com.sjdddd.sojbackend.model.entity.Question;
 import com.sjdddd.sojbackend.model.entity.User;
 import com.sjdddd.sojbackend.model.vo.QuestionVO;
@@ -64,6 +61,16 @@ public class QuestionController {
         if (tags != null) {
             question.setTags(GSON.toJson(tags));
         }
+        List<JudgeCase> judgeCase = questionAddRequest.getJudgeCase();
+        if (judgeCase != null) {
+            question.setJudgeCase(GSON.toJson(judgeCase));
+        }
+
+        JudgeConfig judgeConfig = questionAddRequest.getJudgeConfig();
+        if (judgeConfig != null) {
+            question.setJudgeConfig(GSON.toJson(judgeConfig));
+        }
+
         questionService.validQuestion(question, true);
         User loginUser = userService.getLoginUser(request);
         question.setUserId(loginUser.getId());
@@ -117,6 +124,15 @@ public class QuestionController {
         List<String> tags = questionUpdateRequest.getTags();
         if (tags != null) {
             question.setTags(GSON.toJson(tags));
+        }
+        List<JudgeCase> judgeCase = questionUpdateRequest.getJudgeCase();
+        if (judgeCase != null) {
+            question.setJudgeCase(GSON.toJson(judgeCase));
+        }
+
+        JudgeConfig judgeConfig = questionUpdateRequest.getJudgeConfig();
+        if (judgeConfig != null) {
+            question.setJudgeConfig(GSON.toJson(judgeConfig));
         }
         // 参数校验
         questionService.validQuestion(question, false);
@@ -225,6 +241,16 @@ public class QuestionController {
         if (tags != null) {
             question.setTags(GSON.toJson(tags));
         }
+        List<JudgeCase> judgeCase = questionEditRequest.getJudgeCase();
+        if (judgeCase != null) {
+            question.setJudgeCase(GSON.toJson(judgeCase));
+        }
+
+        JudgeConfig judgeConfig = questionEditRequest.getJudgeConfig();
+        if (judgeConfig != null) {
+            question.setJudgeConfig(GSON.toJson(judgeConfig));
+        }
+
         // 参数校验
         questionService.validQuestion(question, false);
         User loginUser = userService.getLoginUser(request);
