@@ -33,7 +33,7 @@ public class QuestionVO implements Serializable {
     private String content;
 
     /**
-     * 标签列表（json 数组）
+     * 标签列表
      */
     private List<String> tags;
 
@@ -98,12 +98,10 @@ public class QuestionVO implements Serializable {
         if (tagList != null) {
             question.setTags(JSONUtil.toJsonStr(tagList));
         }
-
-        JudgeConfig vojudgeConfig = questionVO.getJudgeConfig();
-        if (vojudgeConfig != null) {
-            question.setJudgeConfig(JSONUtil.toJsonStr(vojudgeConfig));
+        JudgeConfig voJudgeConfig = questionVO.getJudgeConfig();
+        if (voJudgeConfig != null) {
+            question.setJudgeConfig(JSONUtil.toJsonStr(voJudgeConfig));
         }
-
         return question;
     }
 
@@ -121,10 +119,8 @@ public class QuestionVO implements Serializable {
         BeanUtils.copyProperties(question, questionVO);
         List<String> tagList = JSONUtil.toList(question.getTags(), String.class);
         questionVO.setTags(tagList);
-
         String judgeConfigStr = question.getJudgeConfig();
         questionVO.setJudgeConfig(JSONUtil.toBean(judgeConfigStr, JudgeConfig.class));
-
         return questionVO;
     }
 

@@ -6,8 +6,7 @@ package com.sjdddd.sojbackend.constant;
 public interface FileConstant {
 
     /**
-     * COS 访问地址
-     * todo 需替换配置
+     * OSS 访问地址
      */
-    String COS_HOST = "https://sjdddd.icu";
+    String OSS_HOST = "https://soj123.oss-cn-shanghai.aliyuncs.com/";
 }

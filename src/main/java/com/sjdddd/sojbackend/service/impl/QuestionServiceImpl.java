@@ -40,6 +40,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Resource
     private UserService userService;
 
+    @Resource
+    private QuestionMapper questionMapper;
+
     /**
      * 校验题目是否合法
      * @param question
@@ -165,6 +168,16 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.like("title", titleOrContent).or().like("content", titleOrContent);
         return baseMapper.selectList(queryWrapper);
+    }
+
+    /**
+     * 获取题目答案
+     * @param questionId
+     * @return
+     */
+    @Override
+    public String getQuestionAnswerById(Long questionId) {
+        return questionMapper.getQuestionAnswerById(questionId);
     }
 }
 

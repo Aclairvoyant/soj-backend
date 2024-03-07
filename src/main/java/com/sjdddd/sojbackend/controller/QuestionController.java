@@ -16,6 +16,7 @@ import com.sjdddd.sojbackend.model.entity.User;
 import com.sjdddd.sojbackend.model.vo.QuestionVO;
 import com.sjdddd.sojbackend.service.QuestionService;
 import com.sjdddd.sojbackend.service.UserService;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +43,13 @@ public class QuestionController {
     private final static Gson GSON = new Gson();
 
     // region 增删改查
+
+    @ApiOperation("获取题目答案")
+    @GetMapping("/getQuestionAnswer")
+    public BaseResponse<String> getQuestionAnswer(Long questionId) {
+        String answer = questionService.getQuestionAnswerById(questionId);
+        return ResultUtils.success(answer);
+    }
 
     /**
      * 创建
@@ -145,7 +153,7 @@ public class QuestionController {
     }
 
     /**
-     * 根据 id 获取
+     * 根据 id 获取 脱敏
      *
      * @param id
      * @return
@@ -160,6 +168,29 @@ public class QuestionController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         return ResultUtils.success(questionService.getQuestionVO(question, request));
+    }
+
+    /**
+     * 根据 id 获取
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/get")
+    public BaseResponse<Question> getQuestionById(long id, HttpServletRequest request) {
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Question question = questionService.getById(id);
+        if (question == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        // 仅本人或管理员可查看
+        if (!question.getUserId().equals(loginUser.getId()) && userService.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        return ResultUtils.success(question);
     }
 
     /**
@@ -219,6 +250,18 @@ public class QuestionController {
         Page<Question> questionPage = questionService.page(new Page<>(current, size),
                 questionService.getQueryWrapper(questionQueryRequest));
         return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
+    }
+
+    @ApiOperation("分页获取题目列表（仅管理员）")
+    @PostMapping("/list/page")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Page<Question>> listQuestionByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
+                                                           HttpServletRequest request) {
+        long current = questionQueryRequest.getCurrent();
+        long size = questionQueryRequest.getPageSize();
+        Page<Question> questionPage = questionService.page(new Page<>(current, size),
+                questionService.getQueryWrapper(questionQueryRequest));
+        return ResultUtils.success(questionPage);
     }
 
     // endregion

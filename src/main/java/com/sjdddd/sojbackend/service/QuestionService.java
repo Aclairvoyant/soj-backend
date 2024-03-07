@@ -51,4 +51,6 @@ public interface QuestionService extends IService<Question> {
     Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request);
 
     List<Question> getByTitleOrContent(String titleOrContent);
+
+    String getQuestionAnswerById(Long questionId);
 }
