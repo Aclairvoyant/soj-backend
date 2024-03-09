@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.sjdddd.sojbackend.model.dto.question.QuestionQueryRequest;
 import com.sjdddd.sojbackend.model.entity.Question;
 import com.sjdddd.sojbackend.model.vo.QuestionVO;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

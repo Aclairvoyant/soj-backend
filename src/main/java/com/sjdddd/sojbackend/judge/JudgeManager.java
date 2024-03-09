@@ -4,8 +4,7 @@ import com.sjdddd.sojbackend.judge.strategy.DefaultJudgeStrategy;
 import com.sjdddd.sojbackend.judge.strategy.JavaJudgeStrategy;
 import com.sjdddd.sojbackend.judge.strategy.JudgeContext;
 import com.sjdddd.sojbackend.judge.strategy.JudgeStrategy;
-import com.sjdddd.sojbackend.model.dto.questionsubmit.JudgeInfo;
-import com.sjdddd.sojbackend.model.entity.Question;
+import com.sjdddd.sojbackend.judge.codesandbox.model.JudgeInfo;
 import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
 import org.springframework.stereotype.Service;
 

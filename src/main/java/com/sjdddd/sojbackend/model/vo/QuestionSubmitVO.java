@@ -1,13 +1,14 @@
 package com.sjdddd.sojbackend.model.vo;
 
 import cn.hutool.json.JSONUtil;
-import com.sjdddd.sojbackend.model.dto.questionsubmit.JudgeInfo;
+import com.sjdddd.sojbackend.judge.codesandbox.model.JudgeInfo;
 import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 题目封装类
@@ -29,6 +30,11 @@ public class QuestionSubmitVO implements Serializable {
      * 用户代码
      */
     private String code;
+
+    /**
+     * 标签列表
+     */
+    private List<String> tags;
 
     /**
      * 判题信息（json 对象）

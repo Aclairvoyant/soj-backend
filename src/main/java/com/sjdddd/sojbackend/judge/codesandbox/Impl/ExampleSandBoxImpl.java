@@ -3,7 +3,7 @@ package com.sjdddd.sojbackend.judge.codesandbox.Impl;
 import com.sjdddd.sojbackend.judge.codesandbox.CodeSandBox;
 import com.sjdddd.sojbackend.judge.codesandbox.model.ExecuteCodeRequest;
 import com.sjdddd.sojbackend.judge.codesandbox.model.ExecuteCodeResponse;
-import com.sjdddd.sojbackend.model.dto.questionsubmit.JudgeInfo;
+import com.sjdddd.sojbackend.judge.codesandbox.model.JudgeInfo;
 import com.sjdddd.sojbackend.model.enums.JudgeInfoMessageEnum;
 import com.sjdddd.sojbackend.model.enums.QuestionSubmitStatusEnum;
 

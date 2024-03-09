@@ -1,5 +1,6 @@
 package com.sjdddd.sojbackend.service.impl;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -8,7 +9,7 @@ import com.sjdddd.sojbackend.constant.CommonConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.judge.JudgeService;
 import com.sjdddd.sojbackend.mapper.QuestionSubmitMapper;
-import com.sjdddd.sojbackend.model.dto.question.QuestionQueryRequest;
+import com.sjdddd.sojbackend.judge.codesandbox.model.JudgeInfo;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.sjdddd.sojbackend.model.entity.Question;
@@ -23,17 +24,14 @@ import com.sjdddd.sojbackend.service.QuestionService;
 import com.sjdddd.sojbackend.service.QuestionSubmitService;
 import com.sjdddd.sojbackend.service.UserService;
 import com.sjdddd.sojbackend.utils.SqlUtils;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -96,6 +94,12 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         }
 
         Long questionSubmitId = questionSubmit.getId();
+
+        // 更新题目提交次数
+        Integer submitNum = question.getSubmitNum();
+        question.setSubmitNum(submitNum + 1);
+        questionService.updateById(question);
+
         // 执行判题服务
         CompletableFuture.runAsync(() -> judgeService.doJudge(questionSubmitId));
         return questionSubmitId;
@@ -149,17 +153,50 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
 
     @Override
     public Page<QuestionSubmitVO> getQuestionSubmitVOPage(Page<QuestionSubmit> questionSubmitPage, User loginUser) {
+//        List<QuestionSubmit> questionSubmitList = questionSubmitPage.getRecords();
+//        Page<QuestionSubmitVO> questionSubmitVOPage = new Page<>(questionSubmitPage.getCurrent(), questionSubmitPage.getSize(), questionSubmitPage.getTotal());
+//        if (CollectionUtils.isEmpty(questionSubmitList)) {
+//            return questionSubmitVOPage;
+//        }
+//        List<QuestionSubmitVO> questionSubmitVOList = questionSubmitList.stream()
+//                .map(questionSubmit -> getQuestionSubmitVO(questionSubmit, loginUser))
+//                .collect(Collectors.toList());
+//        questionSubmitVOPage.setRecords(questionSubmitVOList);
+//        return questionSubmitVOPage;
         List<QuestionSubmit> questionSubmitList = questionSubmitPage.getRecords();
         Page<QuestionSubmitVO> questionSubmitVOPage = new Page<>(questionSubmitPage.getCurrent(), questionSubmitPage.getSize(), questionSubmitPage.getTotal());
-        if (CollectionUtils.isEmpty(questionSubmitList)) {
-            return questionSubmitVOPage;
-        }
+//        if (CollectionUtils.isEmpty(questionSubmitList)) {
+//            return questionSubmitVOPage;
+//        }
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(loginUser, userVO);
         List<QuestionSubmitVO> questionSubmitVOList = questionSubmitList.stream()
-                .map(questionSubmit -> getQuestionSubmitVO(questionSubmit, loginUser))
-                .collect(Collectors.toList());
+                .map(m -> {
+                    QuestionSubmitVO questionSubmitVO = getQuestionSubmitVO(m, loginUser);
+                    questionSubmitVO.setUserVO(userVO);
+                    String judgeInfo = m.getJudgeInfo();
+                    JudgeInfo bean = JSONUtil.toBean(judgeInfo, JudgeInfo.class);
+                    String message = bean.getMessage();
+//                    if (message != null) {
+//                        questionSubmitVO.setJudgeInfo(Objects.requireNonNull(JudgeInfoMessageEnum.getEnumByValue(message)).getText());
+//                        questionSubmitVO.setDetailsInfo(bean);
+//                    } else {
+//                        questionSubmitVO.setJudgeInfo("暂无判题信息");
+//                        questionSubmitVO.setDetailsInfo(null);
+//                    }
+                    //获取判题信息，设置到对象中去
+                    Long questionId = m.getQuestionId();
+                    Question question = questionService.getById(questionId);
+                    QuestionVO questionSubmitVO1 = new QuestionVO();
+                    BeanUtils.copyProperties(question, questionSubmitVO1);
+                    QuestionVO questionVO = questionSubmitVO1.objToVo(question);
+                    questionSubmitVO.setQuestionVO(questionVO);
+                    return questionSubmitVO;
+                }).collect(Collectors.toList());
         questionSubmitVOPage.setRecords(questionSubmitVOList);
         return questionSubmitVOPage;
     }
+
 }
 
 

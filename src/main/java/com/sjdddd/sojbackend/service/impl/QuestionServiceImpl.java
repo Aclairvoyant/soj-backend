@@ -10,10 +10,12 @@ import com.sjdddd.sojbackend.exception.ThrowUtils;
 import com.sjdddd.sojbackend.mapper.QuestionMapper;
 import com.sjdddd.sojbackend.model.dto.question.QuestionQueryRequest;
 import com.sjdddd.sojbackend.model.entity.Question;
+import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
 import com.sjdddd.sojbackend.model.entity.User;
 import com.sjdddd.sojbackend.model.vo.QuestionVO;
 import com.sjdddd.sojbackend.model.vo.UserVO;
 import com.sjdddd.sojbackend.service.QuestionService;
+import com.sjdddd.sojbackend.service.QuestionSubmitService;
 import com.sjdddd.sojbackend.service.UserService;
 import com.sjdddd.sojbackend.utils.SqlUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -35,7 +37,7 @@ import java.util.stream.Collectors;
 * @createDate 2024-03-03 15:40:37
 */
 @Service
-public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> implements QuestionService{
+public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> implements QuestionService {
 
     @Resource
     private UserService userService;
@@ -45,6 +47,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     /**
      * 校验题目是否合法
+     *
      * @param question
      * @param add
      */
@@ -172,6 +175,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     /**
      * 获取题目答案
+     *
      * @param questionId
      * @return
      */

@@ -2,6 +2,8 @@ package com.sjdddd.sojbackend.service;
 
 import com.sjdddd.sojbackend.model.entity.QuestionSolve;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.sjdddd.sojbackend.model.entity.User;
+import com.sjdddd.sojbackend.model.vo.PersonalDataVO;
 
 /**
 * @author K
@@ -9,5 +11,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2024-03-03 15:41:29
 */
 public interface QuestionSolveService extends IService<QuestionSolve> {
+    boolean createQuestionSolve(QuestionSolve questionSolve);
+    void updateQuestionSolvedCount(Long questionId);
 
+    PersonalDataVO getPersonalData(User loginUser);
 }

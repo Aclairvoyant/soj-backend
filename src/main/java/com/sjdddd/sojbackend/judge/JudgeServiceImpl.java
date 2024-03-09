@@ -8,28 +8,23 @@ import com.sjdddd.sojbackend.judge.codesandbox.CodeSandBoxFactory;
 import com.sjdddd.sojbackend.judge.codesandbox.CodeSandBoxProxy;
 import com.sjdddd.sojbackend.judge.codesandbox.model.ExecuteCodeRequest;
 import com.sjdddd.sojbackend.judge.codesandbox.model.ExecuteCodeResponse;
-import com.sjdddd.sojbackend.judge.strategy.DefaultJudgeStrategy;
-import com.sjdddd.sojbackend.judge.strategy.JavaJudgeStrategy;
 import com.sjdddd.sojbackend.judge.strategy.JudgeContext;
-import com.sjdddd.sojbackend.judge.strategy.JudgeStrategy;
 import com.sjdddd.sojbackend.model.dto.question.JudgeCase;
-import com.sjdddd.sojbackend.model.dto.question.JudgeConfig;
-import com.sjdddd.sojbackend.model.dto.questionsubmit.JudgeInfo;
+import com.sjdddd.sojbackend.judge.codesandbox.model.JudgeInfo;
 import com.sjdddd.sojbackend.model.entity.Question;
+import com.sjdddd.sojbackend.model.entity.QuestionSolve;
 import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
 import com.sjdddd.sojbackend.model.enums.JudgeInfoMessageEnum;
-import com.sjdddd.sojbackend.model.enums.QuestionSubmitLanguageEnum;
 import com.sjdddd.sojbackend.model.enums.QuestionSubmitStatusEnum;
-import com.sjdddd.sojbackend.model.vo.QuestionSubmitVO;
 import com.sjdddd.sojbackend.service.QuestionService;
+import com.sjdddd.sojbackend.service.QuestionSolveService;
 import com.sjdddd.sojbackend.service.QuestionSubmitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -55,16 +50,20 @@ public class JudgeServiceImpl implements JudgeService{
     @Resource
     private JudgeManager judgeManager;
 
+    @Resource
+    private QuestionSolveService questionSolveService;
+
+    @Transactional
     @Override
     public QuestionSubmit doJudge(Long questionSubmitId) {
         QuestionSubmit questionSubmit = questionSubmitService.getById(questionSubmitId);
-        if (questionSubmit == null){
+        if (questionSubmit == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "提交信息不存在");
         }
 
         Long id = questionSubmit.getQuestionId();
         Question question = questionService.getById(id);
-        if (question == null){
+        if (question == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "题目信息不存在");
         }
 
@@ -112,8 +111,19 @@ public class JudgeServiceImpl implements JudgeService{
 
         JudgeInfo judgeInfo = judgeManager.doJudge(judgeContext);
 
+        // 在判题逻辑的适当位置调用服务方法
+        if (judgeInfo.getMessage().equals(JudgeInfoMessageEnum.ACCEPTED.getValue())) {
+            QuestionSolve questionSolve = new QuestionSolve();
+            questionSolve.setUserId(questionSubmit.getUserId());
+            questionSolve.setQuestionId(id);
+            questionSolve.setTitle(question.getTitle());
+            questionSolve.setTags(question.getTags());
+
+            questionSolveService.createQuestionSolve(questionSolve);
+            questionSolveService.updateQuestionSolvedCount(id);
+        }
         // 修改数据库中的判题结果
-        submitUpdate = new QuestionSubmit();
+        // submitUpdate = new QuestionSubmit();
         submitUpdate.setId(questionSubmitId);
         submitUpdate.setStatus(QuestionSubmitStatusEnum.SUCCESS.getValue());
         submitUpdate.setJudgeInfo(JSONUtil.toJsonStr(judgeInfo));

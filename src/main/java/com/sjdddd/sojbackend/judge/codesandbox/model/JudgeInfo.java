@@ -1,4 +1,4 @@
-package com.sjdddd.sojbackend.model.dto.questionsubmit;
+package com.sjdddd.sojbackend.judge.codesandbox.model;
 
 import lombok.Data;
 

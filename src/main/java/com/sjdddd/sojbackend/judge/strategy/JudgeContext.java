@@ -1,7 +1,7 @@
 package com.sjdddd.sojbackend.judge.strategy;
 
 import com.sjdddd.sojbackend.model.dto.question.JudgeCase;
-import com.sjdddd.sojbackend.model.dto.questionsubmit.JudgeInfo;
+import com.sjdddd.sojbackend.judge.codesandbox.model.JudgeInfo;
 import com.sjdddd.sojbackend.model.entity.Question;
 import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package com.sjdddd.sojbackend.judge.strategy;
 
-import com.sjdddd.sojbackend.model.dto.questionsubmit.JudgeInfo;
+import com.sjdddd.sojbackend.judge.codesandbox.model.JudgeInfo;
 
 /**
  * @Author: 沈佳栋
