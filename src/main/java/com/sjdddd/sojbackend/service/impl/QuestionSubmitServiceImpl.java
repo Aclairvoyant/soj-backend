@@ -4,22 +4,28 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.sjdddd.sojbackend.common.BaseResponse;
 import com.sjdddd.sojbackend.common.ErrorCode;
 import com.sjdddd.sojbackend.constant.CommonConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.judge.JudgeService;
+import com.sjdddd.sojbackend.judge.codesandbox.CodeSandBox;
+import com.sjdddd.sojbackend.judge.codesandbox.CodeSandBoxFactory;
+import com.sjdddd.sojbackend.judge.codesandbox.model.ExecuteCodeRequest;
+import com.sjdddd.sojbackend.judge.codesandbox.model.ExecuteCodeResponse;
 import com.sjdddd.sojbackend.mapper.QuestionSubmitMapper;
 import com.sjdddd.sojbackend.judge.codesandbox.model.JudgeInfo;
+import com.sjdddd.sojbackend.model.dto.question.QuestionRunRequest;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.sjdddd.sojbackend.model.entity.Question;
 import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
 import com.sjdddd.sojbackend.model.entity.User;
+import com.sjdddd.sojbackend.model.enums.ExecuteCodeStatusEnum;
+import com.sjdddd.sojbackend.model.enums.JudgeInfoMessageEnum;
 import com.sjdddd.sojbackend.model.enums.QuestionSubmitLanguageEnum;
 import com.sjdddd.sojbackend.model.enums.QuestionSubmitStatusEnum;
-import com.sjdddd.sojbackend.model.vo.QuestionSubmitVO;
-import com.sjdddd.sojbackend.model.vo.QuestionVO;
-import com.sjdddd.sojbackend.model.vo.UserVO;
+import com.sjdddd.sojbackend.model.vo.*;
 import com.sjdddd.sojbackend.service.QuestionService;
 import com.sjdddd.sojbackend.service.QuestionSubmitService;
 import com.sjdddd.sojbackend.service.UserService;
@@ -27,11 +33,14 @@ import com.sjdddd.sojbackend.utils.SqlUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -43,6 +52,9 @@ import java.util.stream.Collectors;
 @Service
 public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper, QuestionSubmit>
     implements QuestionSubmitService{
+
+    @Value("${codesandbox.type:example}")
+    private String type;
 
     @Resource
     private QuestionService questionService;
@@ -103,6 +115,11 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         // 执行判题服务
         CompletableFuture.runAsync(() -> judgeService.doJudge(questionSubmitId));
         return questionSubmitId;
+    }
+
+    @Override
+    public BaseResponse<PersonalDataVO> getPersonalData(User loginUser) {
+        return null;
     }
 
     /**
@@ -195,6 +212,34 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
                 }).collect(Collectors.toList());
         questionSubmitVOPage.setRecords(questionSubmitVOList);
         return questionSubmitVOPage;
+    }
+
+    @Override
+    public QuestionRunResultVO runQuestionSubmit(QuestionRunRequest questionRunRequest, User loginUser) {
+        String code = questionRunRequest.getCode();
+        String language = questionRunRequest.getLanguage();
+        List<String> inputList = Collections.singletonList(questionRunRequest.getInput());
+        List<String> outputList = Collections.singletonList(questionRunRequest.getOutput());
+
+        CodeSandBox codeSandbox = CodeSandBoxFactory.newInstance(type);
+        ExecuteCodeRequest executeCodeRequest = ExecuteCodeRequest.builder()
+                .code(code)
+                .language(language)
+                .inputList(inputList)
+                .build();
+        ExecuteCodeResponse response = codeSandbox.executeCode(executeCodeRequest);
+
+        List<String> output = null;
+        QuestionRunResultVO questionRunResultVO = new QuestionRunResultVO();
+        if (Objects.equals(response.getMessage(), JudgeInfoMessageEnum.ACCEPTED.getText())) {
+            output = Collections.singletonList(response.getOutputList().get(0));
+            questionRunResultVO.setMessage(JudgeInfoMessageEnum.SUCCESS.getText());
+            questionRunResultVO.setOutput(JSONUtil.toJsonStr(output));
+        } else {
+            questionRunResultVO.setMessage(response.getMessage());
+        }
+
+        return questionRunResultVO;
     }
 
 }

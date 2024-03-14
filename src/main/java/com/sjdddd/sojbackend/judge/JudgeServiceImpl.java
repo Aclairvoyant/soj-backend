@@ -123,7 +123,7 @@ public class JudgeServiceImpl implements JudgeService{
             questionSolveService.updateQuestionSolvedCount(id);
         }
         // 修改数据库中的判题结果
-        // submitUpdate = new QuestionSubmit();
+        submitUpdate = new QuestionSubmit();
         submitUpdate.setId(questionSubmitId);
         submitUpdate.setStatus(QuestionSubmitStatusEnum.SUCCESS.getValue());
         submitUpdate.setJudgeInfo(JSONUtil.toJsonStr(judgeInfo));

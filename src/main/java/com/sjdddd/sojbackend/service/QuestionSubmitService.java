@@ -2,13 +2,17 @@ package com.sjdddd.sojbackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sjdddd.sojbackend.common.BaseResponse;
 import com.sjdddd.sojbackend.model.dto.question.QuestionQueryRequest;
+import com.sjdddd.sojbackend.model.dto.question.QuestionRunRequest;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.sjdddd.sojbackend.model.entity.Question;
 import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sjdddd.sojbackend.model.entity.User;
+import com.sjdddd.sojbackend.model.vo.PersonalDataVO;
+import com.sjdddd.sojbackend.model.vo.QuestionRunResultVO;
 import com.sjdddd.sojbackend.model.vo.QuestionSubmitVO;
 import com.sjdddd.sojbackend.model.vo.QuestionVO;
 
@@ -28,6 +32,13 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
      * @return
      */
     long doQuestionSubmit(QuestionSubmitAddRequest questionSubmitAddRequest, User loginUser);
+
+    /**
+     * 获取前端个人数据总览
+     * @param loginUser
+     * @return
+     */
+    BaseResponse<PersonalDataVO> getPersonalData(User loginUser);
 
     /**
      * 获取查询条件
@@ -55,4 +66,5 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
      */
     Page<QuestionSubmitVO> getQuestionSubmitVOPage(Page<QuestionSubmit> questionSubmitPage, User loginUser);
 
+    QuestionRunResultVO runQuestionSubmit(QuestionRunRequest questionRunRequest, User loginUser);
 }

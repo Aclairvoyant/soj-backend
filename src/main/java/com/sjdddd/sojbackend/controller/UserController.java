@@ -12,10 +12,13 @@ import com.sjdddd.sojbackend.constant.UserConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.exception.ThrowUtils;
 import com.sjdddd.sojbackend.model.dto.user.*;
+import com.sjdddd.sojbackend.model.entity.QuestionSolve;
 import com.sjdddd.sojbackend.model.entity.User;
 import com.sjdddd.sojbackend.model.enums.FileUploadBizEnum;
 import com.sjdddd.sojbackend.model.vo.LoginUserVO;
+import com.sjdddd.sojbackend.model.vo.PersonalDataVO;
 import com.sjdddd.sojbackend.model.vo.UserVO;
+import com.sjdddd.sojbackend.service.QuestionSolveService;
 import com.sjdddd.sojbackend.service.UserService;
 import java.util.List;
 import javax.annotation.Resource;
@@ -44,6 +47,9 @@ public class UserController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private QuestionSolveService questionSolveService;
 
     @Resource
     private WxOpenConfig wxOpenConfig;
@@ -331,5 +337,14 @@ public class UserController {
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
+    }
+
+    /**
+     * 获取个人数据
+     */
+    @GetMapping("/getPersonalData")
+    public BaseResponse<PersonalDataVO> getPersonalData(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(questionSolveService.getPersonalData(loginUser));
     }
 }

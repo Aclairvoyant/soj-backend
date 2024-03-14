@@ -1,6 +1,4 @@
 # 数据库初始化
-# @author <a href="https://github.com/lisjdddd">程序员鱼皮</a>
-# @from <a href="https://sjdddd.icu">编程导航知识星球</a>
 
 -- 创建库
 create database if not exists soj;

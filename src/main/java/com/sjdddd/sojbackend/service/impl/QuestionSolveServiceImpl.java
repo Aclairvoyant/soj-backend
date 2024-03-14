@@ -53,7 +53,8 @@ public class QuestionSolveServiceImpl extends ServiceImpl<QuestionSolveMapper, Q
                 .eq("questionId", questionId)
                 .eq("userId", userId));
         if (count > 0) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "已经解决过该题目");
+//            throw new BusinessException(ErrorCode.OPERATION_ERROR, "已经解决过该题目");
+            return false;
         }
 
         return this.save(questionSolve);
@@ -65,7 +66,7 @@ public class QuestionSolveServiceImpl extends ServiceImpl<QuestionSolveMapper, Q
         if (question == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "题目信息不存在");
         }
-        question.setAcceptedNum(question.getAcceptedNum() == null ? 1 : question.getAcceptedNum() + 1);
+        question.setAcceptedNum(question.getAcceptedNum() + 1);
         questionMapper.updateById(question);
     }
 

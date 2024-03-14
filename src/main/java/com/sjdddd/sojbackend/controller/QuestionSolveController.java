@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/question_solve")
 @Slf4j
+@Deprecated
 public class QuestionSolveController {
 
     @Resource

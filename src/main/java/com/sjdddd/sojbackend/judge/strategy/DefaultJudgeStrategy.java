@@ -1,5 +1,6 @@
 package com.sjdddd.sojbackend.judge.strategy;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.sjdddd.sojbackend.model.dto.question.JudgeCase;
 import com.sjdddd.sojbackend.model.dto.question.JudgeConfig;
@@ -8,6 +9,7 @@ import com.sjdddd.sojbackend.model.entity.Question;
 import com.sjdddd.sojbackend.model.enums.JudgeInfoMessageEnum;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @Author: 沈佳栋
@@ -33,6 +35,10 @@ public class DefaultJudgeStrategy implements JudgeStrategy{
         judgeInfoResponse.setMemory(memory);
         judgeInfoResponse.setTime(time);
 
+        if (StrUtil.isNotBlank(judgeInfo.getMessage())) {
+            judgeInfoResponse.setMessage(judgeInfo.getMessage());
+            return judgeInfoResponse;
+        }
 
         if (outputList.size() != inputList.size()) {
             judgeInfoMessageEnum = JudgeInfoMessageEnum.WRONG_ANSWER;

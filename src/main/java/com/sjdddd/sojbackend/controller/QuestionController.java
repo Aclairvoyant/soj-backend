@@ -1,5 +1,6 @@
 package com.sjdddd.sojbackend.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.sjdddd.sojbackend.annotation.AuthCheck;
@@ -11,10 +12,19 @@ import com.sjdddd.sojbackend.constant.UserConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.exception.ThrowUtils;
 import com.sjdddd.sojbackend.model.dto.question.*;
+import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitAddRequest;
+import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.sjdddd.sojbackend.model.entity.Question;
+import com.sjdddd.sojbackend.model.entity.QuestionSolve;
+import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
 import com.sjdddd.sojbackend.model.entity.User;
+import com.sjdddd.sojbackend.model.vo.PersonalDataVO;
+import com.sjdddd.sojbackend.model.vo.QuestionRunResultVO;
+import com.sjdddd.sojbackend.model.vo.QuestionSubmitVO;
 import com.sjdddd.sojbackend.model.vo.QuestionVO;
 import com.sjdddd.sojbackend.service.QuestionService;
+import com.sjdddd.sojbackend.service.QuestionSolveService;
+import com.sjdddd.sojbackend.service.QuestionSubmitService;
 import com.sjdddd.sojbackend.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +49,12 @@ public class QuestionController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private QuestionSubmitService questionSubmitService;
+
+    @Resource
+    private QuestionSolveService questionSolveService;
 
     private final static Gson GSON = new Gson();
 
@@ -307,6 +323,109 @@ public class QuestionController {
         }
         boolean result = questionService.updateById(question);
         return ResultUtils.success(result);
+    }
+
+    /**
+     * 提交题目
+     *
+     * @param questionSubmitAddRequest
+     * @param request
+     * @return 提交记录id
+     */
+    @PostMapping("/question_submit/do")
+    public BaseResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
+                                               HttpServletRequest request) {
+        if (questionSubmitAddRequest == null || questionSubmitAddRequest.getQuestionId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 登录才能提交
+        final User loginUser = userService.getLoginUser(request);
+        long questionSubmitId = questionSubmitService.doQuestionSubmit(questionSubmitAddRequest, loginUser);
+        return ResultUtils.success(questionSubmitId);
+    }
+
+
+    /**
+     * 分页获取题目提交列表（仅管理员）
+     * @param questionSubmitQueryRequest
+     * @return
+     */
+    @PostMapping("/question_submit/list/page")
+    public BaseResponse<Page<QuestionSubmitVO>> listQuestionSubmitByPage(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest,
+                                                                         HttpServletRequest request) {
+        long current = questionSubmitQueryRequest.getCurrent();
+        long size = questionSubmitQueryRequest.getPageSize();
+
+        // 原始信息
+        Page<QuestionSubmit> questionSum = questionSubmitService.page(new Page<>(current, size),
+                questionSubmitService.getQueryWrapper(questionSubmitQueryRequest));
+        final User loginUser = userService.getLoginUser(request);
+        // 返回脱敏信息
+        return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSum, loginUser));
+    }
+
+    /**
+     * 新增用户已经解决的题目
+     */
+    @PostMapping("/createQuestionSolve")
+    public BaseResponse<Boolean> createQuestionSolve(@RequestBody QuestionSolve questionSolve) {
+        Long questionId = questionSolve.getQuestionId();
+        Long userId = questionSolve.getUserId();
+        long count = questionSolveService.count(new QueryWrapper<QuestionSolve>().eq("questionId", questionId).eq("userId", userId));
+        if (count > 0) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "已经解决过该题目");
+        }
+        return ResultUtils.success(questionSolveService.save(questionSolve));
+    }
+
+    /**
+     * 获取用户个人数据
+     *
+     */
+    @GetMapping("/get/id")
+    public BaseResponse<Question> getQuestionById(long questionId) {
+        return ResultUtils.success(questionService.getById(questionId));
+    }
+
+    /**
+     * 获取用户个人数据
+     */
+    @GetMapping("/question_submit/get/id")
+    public BaseResponse<QuestionSubmit> getQuestionSubmitById(long questionSubmitId) {
+        return ResultUtils.success(questionSubmitService.getById(questionSubmitId));
+    }
+
+
+    /**
+     * 更新题目通过率
+     * @param questionId
+     * @return
+     */
+    @PostMapping("/question_submit/updateAccepted")
+    public BaseResponse<Boolean> updateQuestionById(long questionId) {
+        Question byId = questionService.getById(questionId);
+        byId.setAcceptedNum(byId.getAcceptedNum() + 1);
+        return ResultUtils.success(questionService.updateById(byId));
+    }
+
+
+    /**
+     * 自测题目
+     *
+     * @param questionRunRequest
+     * @param request
+     * @return 提交记录id
+     */
+    @PostMapping("/question_submit/run")
+    public BaseResponse<QuestionRunResultVO> runQuestionSubmit(@RequestBody QuestionRunRequest questionRunRequest,
+                                                               HttpServletRequest request) {
+        if (questionRunRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 登录才能提交
+        final User loginUser = userService.getLoginUser(request);
+        QuestionRunResultVO questionRunResultVO = questionSubmitService.runQuestionSubmit(questionRunRequest, loginUser);
+        return ResultUtils.success(questionRunResultVO);
     }
 
 }
