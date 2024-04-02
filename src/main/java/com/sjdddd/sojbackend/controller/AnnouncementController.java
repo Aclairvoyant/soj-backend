@@ -159,11 +159,12 @@ public class AnnouncementController {
     }
 
     /**
-     * 获取所有通知
+     * 获取所有可见的通知
      */
     @GetMapping("/getAll")
-    public BaseResponse<List<Announcement>> getAll() {
-        return ResultUtils.success(announcementService.list());
+    public BaseResponse<List<Announcement>> getAllVisible() {
+        List<Announcement> announcements = announcementService.getAllVisibleAnnouncements();
+        return ResultUtils.success(announcements);
     }
 
     /**

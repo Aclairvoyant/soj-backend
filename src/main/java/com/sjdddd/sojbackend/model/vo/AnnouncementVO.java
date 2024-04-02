@@ -42,6 +42,11 @@ public class AnnouncementVO implements Serializable {
     private Long userId;
 
     /**
+     * 展示状态
+     */
+    private Integer status;
+
+    /**
      * 创建时间
      */
     private Date createTime;

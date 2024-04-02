@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 帖子收藏服务实现
  *
-  
+
  */
 @Service
 public class PostFavourServiceImpl extends ServiceImpl<PostFavourMapper, PostFavour>
@@ -106,6 +106,16 @@ public class PostFavourServiceImpl extends ServiceImpl<PostFavourMapper, PostFav
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR);
             }
         }
+    }
+
+    @Override
+    public boolean checkFavour(Long postId, User loginUser) {
+        PostFavour postFavour = new PostFavour();
+        postFavour.setUserId(loginUser.getId());
+        postFavour.setPostId(postId);
+        QueryWrapper<PostFavour> postFavourQueryWrapper = new QueryWrapper<>(postFavour);
+        PostFavour oldPostFavour = this.getOne(postFavourQueryWrapper);
+        return oldPostFavour != null;
     }
 
 }

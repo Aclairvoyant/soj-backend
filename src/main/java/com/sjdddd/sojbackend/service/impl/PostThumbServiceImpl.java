@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 帖子点赞服务实现
  *
-  
+
  */
 @Service
 public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb>
@@ -95,6 +95,16 @@ public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR);
             }
         }
+    }
+
+    @Override
+    public boolean checkThumb(Long postId, User loginUser) {
+        PostThumb postThumb = new PostThumb();
+        postThumb.setUserId(loginUser.getId());
+        postThumb.setPostId(postId);
+        QueryWrapper<PostThumb> thumbQueryWrapper = new QueryWrapper<>(postThumb);
+        PostThumb oldPostThumb = this.getOne(thumbQueryWrapper);
+        return oldPostThumb != null;
     }
 
 }

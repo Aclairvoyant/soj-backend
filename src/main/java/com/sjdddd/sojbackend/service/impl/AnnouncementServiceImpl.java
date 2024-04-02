@@ -151,6 +151,14 @@ public class AnnouncementServiceImpl extends ServiceImpl<AnnouncementMapper, Ann
         return baseMapper.selectList(queryWrapper);
     }
 
+    @Override
+    public List<Announcement> getAllVisibleAnnouncements() {
+        QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("status", 0) // 状态为0，即可见
+                .eq("isDelete", 0); // 未被删除
+        return list(queryWrapper);
+    }
+
 }
 
 

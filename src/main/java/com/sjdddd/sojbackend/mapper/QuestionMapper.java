@@ -2,6 +2,9 @@ package com.sjdddd.sojbackend.mapper;
 
 import com.sjdddd.sojbackend.model.entity.Question;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.sjdddd.sojbackend.model.vo.QuestionCommentVO;
+
+import java.util.List;
 
 /**
 * @author K
@@ -12,6 +15,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 public interface QuestionMapper extends BaseMapper<Question> {
 
     String getQuestionAnswerById(Long questionId);
+
+    List<QuestionCommentVO> getQuestionComment(Long questionId);
 }
 
 

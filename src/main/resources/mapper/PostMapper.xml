@@ -30,4 +30,11 @@
         from post
         where updateTime >= #{minUpdateTime}
     </select>
+    <select id="getByIdWithUser" resultType="com.sjdddd.sojbackend.model.entity.Post">
+        select p.*, u.userName, u.userAvatar, u.userProfile, u.userRole, u.createTime as userCreateTime
+        from post p
+        left join user u
+            on p.userId = u.id
+        where p.id = #{id}
+    </select>
 </mapper>

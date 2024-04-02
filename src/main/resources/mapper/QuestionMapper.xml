@@ -21,16 +21,38 @@
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
+    <resultMap id="QuestionCommentVOResultMap" type="com.sjdddd.sojbackend.model.vo.QuestionCommentVO">
+        <id column="id" property="id"/>
+        <result column="questionId" property="questionId"/>
+        <result column="userId" property="userId"/>
+        <result column="content" property="content"/>
+        <result column="createTime" property="createTime"/>
+        <result column="updateTime" property="updateTime"/>
+        <association property="userVO" javaType="com.sjdddd.sojbackend.model.vo.UserVO">
+            <result column="userName" property="userName"/>
+            <result column="userAvatar" property="userAvatar"/>
+        </association>
+    </resultMap>
 
     <sql id="Base_Column_List">
         id,title,content,
         tags,answer,submitNum,
         acceptedNum,judgeCase,judgeConfig,
         thumbNum,favourNum,userId,
-        createTime,updateTime,isDelete
+        createTime,updateTime,isDelete,
     </sql>
 
     <select id="getQuestionAnswerById" resultType="java.lang.String">
         select answer from question where id = #{questionId};
+    </select>
+    <select id="getQuestionComment" resultType="com.sjdddd.sojbackend.model.vo.QuestionCommentVO">
+        select
+        qc.id,qc.questionId,qc.userId,
+        qc.content,qc.createTime,qc.updateTime,
+        u.userName,u.userAvatar
+        from question_comment qc
+        left join user u
+            on qc.userId = u.id
+        where questionId = #{questionId,jdbcType=BIGINT}
     </select>
 </mapper>

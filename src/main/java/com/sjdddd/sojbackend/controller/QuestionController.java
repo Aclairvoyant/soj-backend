@@ -11,21 +11,13 @@ import com.sjdddd.sojbackend.common.ResultUtils;
 import com.sjdddd.sojbackend.constant.UserConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.exception.ThrowUtils;
+import com.sjdddd.sojbackend.model.dto.post.PostAddRequest;
 import com.sjdddd.sojbackend.model.dto.question.*;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitQueryRequest;
-import com.sjdddd.sojbackend.model.entity.Question;
-import com.sjdddd.sojbackend.model.entity.QuestionSolve;
-import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
-import com.sjdddd.sojbackend.model.entity.User;
-import com.sjdddd.sojbackend.model.vo.PersonalDataVO;
-import com.sjdddd.sojbackend.model.vo.QuestionRunResultVO;
-import com.sjdddd.sojbackend.model.vo.QuestionSubmitVO;
-import com.sjdddd.sojbackend.model.vo.QuestionVO;
-import com.sjdddd.sojbackend.service.QuestionService;
-import com.sjdddd.sojbackend.service.QuestionSolveService;
-import com.sjdddd.sojbackend.service.QuestionSubmitService;
-import com.sjdddd.sojbackend.service.UserService;
+import com.sjdddd.sojbackend.model.entity.*;
+import com.sjdddd.sojbackend.model.vo.*;
+import com.sjdddd.sojbackend.service.*;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -55,6 +47,9 @@ public class QuestionController {
 
     @Resource
     private QuestionSolveService questionSolveService;
+
+    @Resource
+    private QuestionCommentService questionCommentService;
 
     private final static Gson GSON = new Gson();
 
@@ -218,7 +213,7 @@ public class QuestionController {
      */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<QuestionVO>> listQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
-            HttpServletRequest request) {
+                                                               HttpServletRequest request) {
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
         // 限制爬虫
@@ -253,7 +248,7 @@ public class QuestionController {
      */
     @PostMapping("/my/list/page/vo")
     public BaseResponse<Page<QuestionVO>> listMyQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
-            HttpServletRequest request) {
+                                                                 HttpServletRequest request) {
         if (questionQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -347,6 +342,7 @@ public class QuestionController {
 
     /**
      * 分页获取题目提交列表（仅管理员）
+     *
      * @param questionSubmitQueryRequest
      * @return
      */
@@ -380,7 +376,6 @@ public class QuestionController {
 
     /**
      * 获取用户个人数据
-     *
      */
     @GetMapping("/get/id")
     public BaseResponse<Question> getQuestionById(long questionId) {
@@ -398,6 +393,7 @@ public class QuestionController {
 
     /**
      * 更新题目通过率
+     *
      * @param questionId
      * @return
      */
@@ -426,6 +422,36 @@ public class QuestionController {
         final User loginUser = userService.getLoginUser(request);
         QuestionRunResultVO questionRunResultVO = questionSubmitService.runQuestionSubmit(questionRunRequest, loginUser);
         return ResultUtils.success(questionRunResultVO);
+    }
+
+
+    /**
+     * 获取题目评论
+     */
+    @GetMapping("/getQuestionComment")
+    public BaseResponse<List<QuestionCommentVO>> getQuestionComment(Long questionId) {
+        return ResultUtils.success(questionService.getQuestionComment(questionId));
+    }
+
+    /**
+     * 新增题目评论
+     */
+    @PostMapping("/addQuestionComment")
+    public BaseResponse<Long> addQuestionComment(@RequestBody QuestionCommentAddRequest questionCommentAddRequest, HttpServletRequest request) {
+        if (questionCommentAddRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QuestionComment questionComment = new QuestionComment();
+        BeanUtils.copyProperties(questionCommentAddRequest, questionComment);
+
+        questionCommentService.validComment(questionComment, true);
+        User loginUser = userService.getLoginUser(request);
+        questionComment.setUserId(loginUser.getId());
+
+        boolean result = questionCommentService.save(questionComment);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        long newCommentId = questionComment.getId();
+        return ResultUtils.success(newCommentId);
     }
 
 }
