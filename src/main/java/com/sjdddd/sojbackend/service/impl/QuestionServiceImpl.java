@@ -12,6 +12,7 @@ import com.sjdddd.sojbackend.model.dto.question.QuestionQueryRequest;
 import com.sjdddd.sojbackend.model.entity.Question;
 import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
 import com.sjdddd.sojbackend.model.entity.User;
+import com.sjdddd.sojbackend.model.vo.QuestionCommentVO;
 import com.sjdddd.sojbackend.model.vo.QuestionVO;
 import com.sjdddd.sojbackend.model.vo.UserVO;
 import com.sjdddd.sojbackend.service.QuestionService;
@@ -182,6 +183,15 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Override
     public String getQuestionAnswerById(Long questionId) {
         return questionMapper.getQuestionAnswerById(questionId);
+    }
+
+    @Override
+    public List<QuestionCommentVO> getQuestionComment(Long questionId) {
+        QuestionCommentVO questionCommentVO = new QuestionCommentVO();
+        questionCommentVO.setQuestionId(questionId);
+        QueryWrapper<QuestionCommentVO> queryWrapper = new QueryWrapper<>(questionCommentVO);
+        queryWrapper.eq("questionId", questionId);
+        return questionMapper.getQuestionComment(questionId);
     }
 }
 

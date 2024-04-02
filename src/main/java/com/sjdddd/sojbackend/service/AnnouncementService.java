@@ -53,4 +53,7 @@ public interface AnnouncementService extends IService<Announcement> {
     Page<AnnouncementVO> getAnnouncementVOPage(Page<Announcement> announcementPage, HttpServletRequest request);
 
     List<Announcement> getByTitleOrContent(String titleOrContent);
+
+
+    List<Announcement> getAllVisibleAnnouncements();
 }

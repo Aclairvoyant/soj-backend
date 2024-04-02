@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sjdddd.sojbackend.model.dto.question.QuestionQueryRequest;
 import com.sjdddd.sojbackend.model.entity.Question;
+import com.sjdddd.sojbackend.model.vo.QuestionCommentVO;
 import com.sjdddd.sojbackend.model.vo.QuestionVO;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -55,4 +56,6 @@ public interface QuestionService extends IService<Question> {
     List<Question> getByTitleOrContent(String titleOrContent);
 
     String getQuestionAnswerById(Long questionId);
+
+    List<QuestionCommentVO> getQuestionComment(Long questionId);
 }

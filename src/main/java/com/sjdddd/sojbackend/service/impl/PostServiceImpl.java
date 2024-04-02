@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.RegEx;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,7 @@ import org.springframework.stereotype.Service;
 /**
  * 帖子服务实现
  *
-  
+
  */
 @Service
 @Slf4j
@@ -66,6 +67,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     @Resource
     private PostFavourMapper postFavourMapper;
+
+    @Resource
+    private PostMapper postMapper;
 
     @Resource
     private ElasticsearchRestTemplate elasticsearchRestTemplate;
@@ -314,6 +318,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         queryWrapper.like("title", titleOrContent).or().like("content", titleOrContent);
         return baseMapper.selectList(queryWrapper);
     }
+
+    @Override
+    public Post getByIdWithUser(long id) {
+        return postMapper.getByIdWithUser(id);
+    }
+
 
 }
 

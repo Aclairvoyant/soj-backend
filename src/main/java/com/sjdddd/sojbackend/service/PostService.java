@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 帖子服务
  *
-  
+
  */
 public interface PostService extends IService<Post> {
 
@@ -59,4 +59,6 @@ public interface PostService extends IService<Post> {
     Page<PostVO> getPostVOPage(Page<Post> postPage, HttpServletRequest request);
 
     List<Post> getByTitleOrContent(String titleOrContent);
+
+    Post getByIdWithUser(long id);
 }

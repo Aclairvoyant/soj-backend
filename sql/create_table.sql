@@ -85,6 +85,7 @@ create table if not exists post
     id         bigint auto_increment comment 'id' primary key,
     title      varchar(512)                       null comment '标题',
     content    text                               null comment '内容',
+    picture    text                               null comment '图片列表（json 数组）',
     tags       varchar(1024)                      null comment '标签列表（json 数组）',
     thumbNum   int      default 0                 not null comment '点赞数',
     favourNum  int      default 0                 not null comment '收藏数',
@@ -137,15 +138,29 @@ CREATE TABLE IF NOT EXISTS post_comment
 -- 通知表
 create table if not exists announcement
 (
-    id             bigint auto_increment comment 'id' primary key,
-    title          varchar(512)                       not null comment '通知标题',
-    content        text                               not null comment '通知内容',
-    userId         bigint                             not null comment '创建用户 id',
-    createTime     datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    updateTime     datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    status         int      default 0                 not null comment '通知状态（0 - 可见、1 - 隐藏）',
-    isDelete       tinyint  default 0                 not null comment '是否删除',
+    id         bigint auto_increment comment 'id' primary key,
+    title      varchar(512)                       not null comment '通知标题',
+    content    text                               not null comment '通知内容',
+    userId     bigint                             not null comment '创建用户 id',
+    createTime datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    status     int      default 0                 not null comment '通知状态（0 - 可见、1 - 隐藏）',
+    isDelete   tinyint  default 0                 not null comment '是否删除',
     index idx_userId (userId),
     index idx_announcementId (id)
 ) COLLATE = utf8mb4_unicode_ci comment '通知';
 
+
+-- 题目评论表
+CREATE TABLE IF NOT EXISTS question_comment
+(
+    id         BIGINT AUTO_INCREMENT COMMENT 'id' PRIMARY KEY,
+    questionId BIGINT                             NOT NULL COMMENT '题目 id',
+    userId     BIGINT                             NOT NULL COMMENT '创建用户 id',
+    content    TEXT                               NOT NULL COMMENT '评论内容',
+    createTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
+    updateTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    isDelete   TINYINT  DEFAULT 0                 NOT NULL COMMENT '是否删除',
+    INDEX idx_postId (questionId),
+    INDEX idx_userId (userId)
+) COMMENT '题目评论' COLLATE = utf8mb4_unicode_ci;

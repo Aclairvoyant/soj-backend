@@ -15,6 +15,7 @@ public interface PostMapper extends BaseMapper<Post> {
      */
     List<Post> listPostWithDelete(Date minUpdateTime);
 
+    Post getByIdWithUser(long id);
 }
 
 
