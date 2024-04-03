@@ -17,6 +17,9 @@ import com.sjdddd.sojbackend.service.PostService;
 import com.sjdddd.sojbackend.service.UserService;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/post_favour")
+@Api(tags = "帖子收藏接口")
 @Slf4j
 public class PostFavourController {
 
@@ -45,6 +49,7 @@ public class PostFavourController {
      * @return resultNum 收藏变化数
      */
     @PostMapping("/")
+    @ApiOperation("收藏 / 取消收藏")
     public BaseResponse<Integer> doPostFavour(@RequestBody PostFavourAddRequest postFavourAddRequest,
             HttpServletRequest request) {
         if (postFavourAddRequest == null || postFavourAddRequest.getPostId() <= 0) {
@@ -64,6 +69,7 @@ public class PostFavourController {
      * @param request
      */
     @PostMapping("/my/list/page")
+    @ApiOperation("获取我收藏的帖子列表")
     public BaseResponse<Page<PostVO>> listMyFavourPostByPage(@RequestBody PostQueryRequest postQueryRequest,
             HttpServletRequest request) {
         if (postQueryRequest == null) {
@@ -86,6 +92,7 @@ public class PostFavourController {
      * @param request
      */
     @PostMapping("/list/page")
+    @ApiOperation("获取用户收藏的帖子列表")
     public BaseResponse<Page<PostVO>> listFavourPostByPage(@RequestBody PostFavourQueryRequest postFavourQueryRequest,
             HttpServletRequest request) {
         if (postFavourQueryRequest == null) {
@@ -109,6 +116,7 @@ public class PostFavourController {
      * @return
      */
     @PostMapping("/check/{postId}")
+    @ApiOperation("检查是否已收藏")
     public BaseResponse<Boolean> checkFavour(@PathVariable Long postId, HttpServletRequest request) {
         if (postId == null || postId <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

@@ -18,6 +18,7 @@ import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitQueryRequest
 import com.sjdddd.sojbackend.model.entity.*;
 import com.sjdddd.sojbackend.model.vo.*;
 import com.sjdddd.sojbackend.service.*;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -32,6 +33,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/question")
+@Api(tags = "题目接口")
 @Slf4j
 @CrossOrigin
 public class QuestionController {
@@ -55,6 +57,7 @@ public class QuestionController {
 
     // region 增删改查
 
+    // todo: 修改获取题目答案逻辑
     @ApiOperation("获取题目答案")
     @GetMapping("/getQuestionAnswer")
     public BaseResponse<String> getQuestionAnswer(Long questionId) {
@@ -63,13 +66,15 @@ public class QuestionController {
     }
 
     /**
-     * 创建
+     * 创建（仅管理员）
      *
      * @param questionAddRequest
      * @param request
      * @return
      */
     @PostMapping("/add")
+    @ApiOperation("新增题目")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> addQuestion(@RequestBody QuestionAddRequest questionAddRequest, HttpServletRequest request) {
         if (questionAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -102,13 +107,15 @@ public class QuestionController {
     }
 
     /**
-     * 删除
+     * 删除（仅管理员）
      *
      * @param deleteRequest
      * @param request
      * @return
      */
     @PostMapping("/delete")
+    @ApiOperation("删除题目")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteQuestion(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -133,6 +140,7 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/update")
+    @ApiOperation("更新题目")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateQuestion(@RequestBody QuestionUpdateRequest questionUpdateRequest) {
         if (questionUpdateRequest == null || questionUpdateRequest.getId() <= 0) {
@@ -170,6 +178,7 @@ public class QuestionController {
      * @return
      */
     @GetMapping("/get/vo")
+    @ApiOperation("根据id获取题目详情(脱敏)")
     public BaseResponse<QuestionVO> getQuestionVOById(long id, HttpServletRequest request) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -188,6 +197,7 @@ public class QuestionController {
      * @return
      */
     @GetMapping("/get")
+    @ApiOperation("根据id获取题目详情")
     public BaseResponse<Question> getQuestionById(long id, HttpServletRequest request) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -212,6 +222,7 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/list/page/vo")
+    @ApiOperation("分页获取题目列表")
     public BaseResponse<Page<QuestionVO>> listQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
                                                                HttpServletRequest request) {
         long current = questionQueryRequest.getCurrent();
@@ -227,6 +238,7 @@ public class QuestionController {
      * 获取所有题目
      */
     @GetMapping("/getAll")
+    @ApiOperation("获取所有题目")
     public BaseResponse<List<Question>> getAll() {
         return ResultUtils.success(questionService.list());
     }
@@ -235,6 +247,7 @@ public class QuestionController {
      * 根据标题或者题目内容模糊查询
      */
     @GetMapping("/getByTitleOrContent")
+    @ApiOperation("根据标题或者题目内容模糊查询")
     public BaseResponse<List<Question>> getByTitleOrContent(String titleOrContent) {
         return ResultUtils.success(questionService.getByTitleOrContent(titleOrContent));
     }
@@ -247,6 +260,7 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/my/list/page/vo")
+    @ApiOperation("获取当前用户题目列表")
     public BaseResponse<Page<QuestionVO>> listMyQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
                                                                  HttpServletRequest request) {
         if (questionQueryRequest == null) {
@@ -284,7 +298,9 @@ public class QuestionController {
      * @param request
      * @return
      */
+    @Deprecated
     @PostMapping("/edit")
+    @ApiOperation("编辑题目（用户）")
     public BaseResponse<Boolean> editQuestion(@RequestBody QuestionEditRequest questionEditRequest, HttpServletRequest request) {
         if (questionEditRequest == null || questionEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -328,6 +344,7 @@ public class QuestionController {
      * @return 提交记录id
      */
     @PostMapping("/question_submit/do")
+    @ApiOperation("提交题目")
     public BaseResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
                                                HttpServletRequest request) {
         if (questionSubmitAddRequest == null || questionSubmitAddRequest.getQuestionId() <= 0) {
@@ -341,12 +358,13 @@ public class QuestionController {
 
 
     /**
-     * 分页获取题目提交列表（仅管理员）
+     * 分页获取题目提交列表
      *
      * @param questionSubmitQueryRequest
      * @return
      */
     @PostMapping("/question_submit/list/page")
+    @ApiOperation("分页获取题目提交列表")
     public BaseResponse<Page<QuestionSubmitVO>> listQuestionSubmitByPage(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest,
                                                                          HttpServletRequest request) {
         long current = questionSubmitQueryRequest.getCurrent();
@@ -364,6 +382,7 @@ public class QuestionController {
      * 新增用户已经解决的题目
      */
     @PostMapping("/createQuestionSolve")
+    @ApiOperation("新增用户已经解决的题目")
     public BaseResponse<Boolean> createQuestionSolve(@RequestBody QuestionSolve questionSolve) {
         Long questionId = questionSolve.getQuestionId();
         Long userId = questionSolve.getUserId();
@@ -378,14 +397,16 @@ public class QuestionController {
      * 获取用户个人数据
      */
     @GetMapping("/get/id")
+    @ApiOperation("获取用户个人数据")
     public BaseResponse<Question> getQuestionById(long questionId) {
         return ResultUtils.success(questionService.getById(questionId));
     }
 
     /**
-     * 获取用户个人数据
+     * 获取用户题目提交数据
      */
     @GetMapping("/question_submit/get/id")
+    @ApiOperation("获取用户题目提交数据")
     public BaseResponse<QuestionSubmit> getQuestionSubmitById(long questionSubmitId) {
         return ResultUtils.success(questionSubmitService.getById(questionSubmitId));
     }
@@ -398,6 +419,7 @@ public class QuestionController {
      * @return
      */
     @PostMapping("/question_submit/updateAccepted")
+    @ApiOperation("更新题目通过率")
     public BaseResponse<Boolean> updateQuestionById(long questionId) {
         Question byId = questionService.getById(questionId);
         byId.setAcceptedNum(byId.getAcceptedNum() + 1);
@@ -413,6 +435,7 @@ public class QuestionController {
      * @return 提交记录id
      */
     @PostMapping("/question_submit/run")
+    @ApiOperation("运行题目自测")
     public BaseResponse<QuestionRunResultVO> runQuestionSubmit(@RequestBody QuestionRunRequest questionRunRequest,
                                                                HttpServletRequest request) {
         if (questionRunRequest == null) {
@@ -429,6 +452,7 @@ public class QuestionController {
      * 获取题目评论
      */
     @GetMapping("/getQuestionComment")
+    @ApiOperation("获取题目评论")
     public BaseResponse<List<QuestionCommentVO>> getQuestionComment(Long questionId) {
         return ResultUtils.success(questionService.getQuestionComment(questionId));
     }
@@ -437,6 +461,7 @@ public class QuestionController {
      * 新增题目评论
      */
     @PostMapping("/addQuestionComment")
+    @ApiOperation("新增题目评论")
     public BaseResponse<Long> addQuestionComment(@RequestBody QuestionCommentAddRequest questionCommentAddRequest, HttpServletRequest request) {
         if (questionCommentAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);

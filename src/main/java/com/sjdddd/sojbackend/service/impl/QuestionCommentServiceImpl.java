@@ -1,14 +1,19 @@
 package com.sjdddd.sojbackend.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sjdddd.sojbackend.common.ErrorCode;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.exception.ThrowUtils;
 import com.sjdddd.sojbackend.mapper.QuestionCommentMapper;
+import com.sjdddd.sojbackend.model.entity.PostComment;
 import com.sjdddd.sojbackend.model.entity.QuestionComment;
+import com.sjdddd.sojbackend.model.vo.QuestionCommentVO;
 import com.sjdddd.sojbackend.service.QuestionCommentService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @Author: 沈佳栋

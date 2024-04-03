@@ -19,6 +19,8 @@ import com.sjdddd.sojbackend.model.entity.User;
 import com.sjdddd.sojbackend.model.vo.AnnouncementVO;
 import com.sjdddd.sojbackend.service.AnnouncementService;
 import com.sjdddd.sojbackend.service.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +34,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/announcement")
+@Api(tags = "通知公告接口")
 @Slf4j
 @CrossOrigin
 public class AnnouncementController {
@@ -54,6 +57,7 @@ public class AnnouncementController {
      * @return
      */
     @PostMapping("/add")
+    @ApiOperation("新增公告 (仅管理员)")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> addAnnouncement(@RequestBody AnnouncementAddRequest announcementAddRequest, HttpServletRequest request) {
         if (announcementAddRequest == null) {
@@ -78,6 +82,7 @@ public class AnnouncementController {
      * @return
      */
     @PostMapping("/delete")
+    @ApiOperation("删除公告 (仅管理员)")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteAnnouncement(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -103,6 +108,7 @@ public class AnnouncementController {
      * @return
      */
     @PostMapping("/update")
+    @ApiOperation("更新公告 (仅管理员)")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateAnnouncement(@RequestBody AnnouncementUpdateRequest announcementUpdateRequest) {
         if (announcementUpdateRequest == null || announcementUpdateRequest.getId() <= 0) {
@@ -128,6 +134,7 @@ public class AnnouncementController {
      * @return
      */
     @GetMapping("/get/vo")
+    @ApiOperation("根据id获取公告")
     public BaseResponse<AnnouncementVO> getAnnouncementVOById(long id, HttpServletRequest request) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -147,6 +154,7 @@ public class AnnouncementController {
      * @return
      */
     @PostMapping("/list/page/vo")
+    @ApiOperation("分页获取公告列表")
     public BaseResponse<Page<AnnouncementVO>> listAnnouncementVOByPage(@RequestBody AnnouncementQueryRequest announcementQueryRequest,
             HttpServletRequest request) {
         long current = announcementQueryRequest.getCurrent();
@@ -162,6 +170,7 @@ public class AnnouncementController {
      * 获取所有可见的通知
      */
     @GetMapping("/getAll")
+    @ApiOperation("获取所有可见的通知")
     public BaseResponse<List<Announcement>> getAllVisible() {
         List<Announcement> announcements = announcementService.getAllVisibleAnnouncements();
         return ResultUtils.success(announcements);
@@ -171,34 +180,9 @@ public class AnnouncementController {
      * 根据标题或者通知内容模糊查询
      */
     @GetMapping("/getByTitleOrContent")
+    @ApiOperation("根据标题或者通知内容模糊查询")
     public BaseResponse<List<Announcement>> getByTitleOrContent(String titleOrContent) {
         return ResultUtils.success(announcementService.getByTitleOrContent(titleOrContent));
     }
-
-    /**
-     * 分页获取当前用户创建的资源列表
-     *
-     * @param announcementQueryRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/my/list/page/vo")
-    public BaseResponse<Page<AnnouncementVO>> listMyAnnouncementVOByPage(@RequestBody AnnouncementQueryRequest announcementQueryRequest,
-            HttpServletRequest request) {
-        if (announcementQueryRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User loginUser = userService.getLoginUser(request);
-        announcementQueryRequest.setUserId(loginUser.getId());
-        long current = announcementQueryRequest.getCurrent();
-        long size = announcementQueryRequest.getPageSize();
-        // 限制爬虫
-        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Announcement> announcementPage = announcementService.page(new Page<>(current, size),
-                announcementService.getQueryWrapper(announcementQueryRequest));
-        return ResultUtils.success(announcementService.getAnnouncementVOPage(announcementPage, request));
-    }
-
-
 
 }

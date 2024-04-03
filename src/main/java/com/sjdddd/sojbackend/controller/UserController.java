@@ -24,6 +24,9 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
@@ -42,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/user")
+@Api(tags = "用户接口")
 @Slf4j
 public class UserController {
 
@@ -64,11 +68,13 @@ public class UserController {
      * @return
      */
     @PostMapping  ("/loginByMail")
+    @ApiOperation("邮箱登录")
     public BaseResponse<LoginUserVO> loginByMail(@RequestBody UserLoginByMailRequest mailRequest , HttpServletRequest request) {
         return userService.loginByMail(mailRequest,request);
     }
 
     @PostMapping("/forgetPassword")
+    @ApiOperation("忘记密码")
     public BaseResponse<String> forgetPassword(@RequestBody UserForgetPasswordRequest userForgetPasswordRequest) {
         return userService.forgetPassword(userForgetPasswordRequest);
     }
@@ -79,6 +85,7 @@ public class UserController {
      * @return
      */
     @GetMapping ("/sendMailCode")
+    @ApiOperation("发送邮箱验证码")
     public BaseResponse<String> sendMailCode(@RequestParam String mail) {
         return userService.sendMailCode(mail);
     }
@@ -91,6 +98,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/register")
+    @ApiOperation("用户注册")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -115,6 +123,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/login")
+    @ApiOperation("用户登录")
     public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -131,7 +140,9 @@ public class UserController {
     /**
      * 用户登录（微信开放平台）
      */
+    @Deprecated
     @GetMapping("/login/wx_open")
+    @ApiOperation("用户登录（微信开放平台")
     public BaseResponse<LoginUserVO> userLoginByWxOpen(HttpServletRequest request, HttpServletResponse response,
             @RequestParam("code") String code) {
         WxOAuth2AccessToken accessToken;
@@ -158,6 +169,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/logout")
+    @ApiOperation("用户注销")
     public BaseResponse<Boolean> userLogout(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -173,6 +185,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/get/login")
+    @ApiOperation("获取当前登录用户")
     public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
         User user = userService.getLoginUser(request);
         return ResultUtils.success(userService.getLoginUserVO(user));
@@ -190,6 +203,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/add")
+    @ApiOperation("创建用户 (仅管理员)")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest, HttpServletRequest request) {
         if (userAddRequest == null) {
@@ -210,6 +224,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/delete")
+    @ApiOperation("删除用户 (仅管理员)")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
@@ -227,6 +242,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/update")
+    @ApiOperation("更新用户 (仅管理员)")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest,
             HttpServletRequest request) {
@@ -248,6 +264,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/get")
+    @ApiOperation("根据 id 获取用户(仅管理员)")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<User> getUserById(long id, HttpServletRequest request) {
         if (id <= 0) {
@@ -266,6 +283,7 @@ public class UserController {
      * @return
      */
     @GetMapping("/get/vo")
+    @ApiOperation("根据 id 获取用户(脱敏)")
     public BaseResponse<UserVO> getUserVOById(long id, HttpServletRequest request) {
         BaseResponse<User> response = getUserById(id, request);
         User user = response.getData();
@@ -280,6 +298,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/list/page")
+    @ApiOperation("分页获取用户列表(仅管理员)")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<User>> listUserByPage(@RequestBody UserQueryRequest userQueryRequest,
             HttpServletRequest request) {
@@ -298,6 +317,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/list/page/vo")
+    @ApiOperation("分页获取用户列表(脱敏)")
     public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest,
             HttpServletRequest request) {
         if (userQueryRequest == null) {
@@ -325,6 +345,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/update/my")
+    @ApiOperation("更新个人信息")
     public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
             HttpServletRequest request) {
         if (userUpdateMyRequest == null) {
@@ -343,6 +364,7 @@ public class UserController {
      * 获取个人数据
      */
     @GetMapping("/getPersonalData")
+    @ApiOperation("获取个人数据")
     public BaseResponse<PersonalDataVO> getPersonalData(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         return ResultUtils.success(questionSolveService.getPersonalData(loginUser));

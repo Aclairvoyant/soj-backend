@@ -7,6 +7,9 @@ import java.util.Collections;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts.MenuButtonType;
 import me.chanjar.weixin.common.bean.menu.WxMenu;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  **/
 @RestController
 @RequestMapping("/")
+@Api(tags = "微信公众号接口")
 @Slf4j
 public class WxMpController {
 
@@ -37,6 +41,7 @@ public class WxMpController {
     private WxMpMessageRouter router;
 
     @PostMapping("/")
+    @ApiOperation("接收微信公众号消息")
     public void receiveMessage(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         response.setContentType("text/html;charset=utf-8");
@@ -77,6 +82,7 @@ public class WxMpController {
     }
 
     @GetMapping("/")
+    @ApiOperation("微信公众号接口校验")
     public String check(String timestamp, String nonce, String signature, String echostr) {
         log.info("check");
         if (wxMpService.checkSignature(timestamp, nonce, signature)) {
@@ -93,6 +99,7 @@ public class WxMpController {
      * @throws WxErrorException
      */
     @GetMapping("/setMenu")
+    @ApiOperation("设置公众号菜单")
     public String setMenu() throws WxErrorException {
         log.info("setMenu");
         WxMenu wxMenu = new WxMenu();

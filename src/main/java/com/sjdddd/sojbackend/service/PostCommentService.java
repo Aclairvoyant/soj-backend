@@ -2,6 +2,9 @@ package com.sjdddd.sojbackend.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sjdddd.sojbackend.model.entity.PostComment;
+import com.sjdddd.sojbackend.model.vo.PostCommentVO;
+
+import java.util.List;
 
 
 /**
@@ -11,4 +14,11 @@ import com.sjdddd.sojbackend.model.entity.PostComment;
 */
 public interface PostCommentService extends IService<PostComment> {
 
+    void validComment(PostComment postComment, boolean b);
+
+    List<PostComment> getByPostId(long postId);
+
+    boolean deleteCommentById(long id);
+
+    List<PostCommentVO> getCommentById(long postId);
 }

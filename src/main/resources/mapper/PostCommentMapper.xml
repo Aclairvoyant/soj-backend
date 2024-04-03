@@ -8,6 +8,7 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="postId" column="postId" jdbcType="BIGINT"/>
             <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="parentId" column="parentId" jdbcType="BIGINT"/>
             <result property="content" column="content" jdbcType="VARCHAR"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
@@ -16,7 +17,18 @@
 
     <sql id="Base_Column_List">
         id,postId,userId,
-        content,createTime,updateTime,
-        isDelete
+        parentId,content,createTime,
+        updateTime,isDelete
     </sql>
+    <select id="getPostComment" resultType="com.sjdddd.sojbackend.model.vo.PostCommentVO">
+        select
+        pc.*,
+        u.userName,u.userAvatar
+        from post_comment pc
+        left join user u
+            on pc.userId = u.id
+        where pc.postId = #{postId}
+        and pc.isDelete = 0
+        order by pc.createTime desc
+    </select>
 </mapper>

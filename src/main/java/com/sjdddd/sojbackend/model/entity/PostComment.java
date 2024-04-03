@@ -33,6 +33,11 @@ public class PostComment implements Serializable {
     private Long userId;
 
     /**
+     * 父评论 id，如果是顶级评论则为NULL
+     */
+    private Long parentId;
+
+    /**
      * 评论内容
      */
     private String content;

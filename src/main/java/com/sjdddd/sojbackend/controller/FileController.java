@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 
 @RestController
-@Api(tags = "file")
+@Api(tags = "文件接口")
 @RequestMapping("/file")
 public class FileController {
 
