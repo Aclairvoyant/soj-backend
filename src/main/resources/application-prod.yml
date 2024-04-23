@@ -1,7 +1,18 @@
 # 线上配置文件
-server:
-  port: 8101
 spring:
+  application:
+    name:soj-backend
+  # 支持 swagger3
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # session 配置
+  session:
+    # todo 取消注释开启分布式 session（须先配置 Redis）
+    store-type: redis
+    # 30 天过期
+    timeout: 2592000
+
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -14,13 +25,37 @@ spring:
     host: localhost
     port: 6379
     timeout: 5000
-    password:
+    password: shenjiadong1010
+  # RabbitMQ 配置
+  rabbitmq:
+    host: localhost
+    port: 5672
+    password: shenjiadong1010
+    username: soj
   # Elasticsearch 配置
-  # todo 需替换配置
-  elasticsearch:
-    uris: http://localhost:9200
-    username: root
-    password: 123456
+  # todo 需替换配置，然后取消注释
+  #  elasticsearch:
+  #    uris: http://localhost:9200
+  #    username: root
+  #    password: 123456
+  # 文件上传
+  servlet:
+    multipart:
+      # 大小限制
+      max-file-size: 10MB
+server:
+  address: 0.0.0.0
+  port: 8081
+  ssl:
+    key-store-password: nf9wxc13cvv5q
+    key-store-type: JKS
+    key-store: classpath:s-oj.cn.jks
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
 mybatis-plus:
   configuration:
     # 生产环境关闭日志

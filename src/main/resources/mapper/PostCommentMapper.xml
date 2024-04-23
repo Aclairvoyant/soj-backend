@@ -29,6 +29,6 @@
             on pc.userId = u.id
         where pc.postId = #{postId}
         and pc.isDelete = 0
-        order by pc.createTime desc
+        order by pc.createTime
     </select>
 </mapper>

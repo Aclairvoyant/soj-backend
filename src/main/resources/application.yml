@@ -12,7 +12,7 @@ spring:
   # session 配置
   session:
     # todo 取消注释开启分布式 session（须先配置 Redis）
-    # store-type: redis
+    store-type: redis
     # 30 天过期
     timeout: 2592000
   # 数据库配置
@@ -28,6 +28,12 @@ spring:
     port: 6379
     timeout: 5000
     password: shenjiadong1010
+  # RabbitMQ 配置
+  rabbitmq:
+    host: localhost
+    port: 5672
+    password: shenjiadong1010
+    username: soj
   # Elasticsearch 配置
   # todo 需替换配置，然后取消注释
 #  elasticsearch:
@@ -95,4 +101,4 @@ aliyun:
 
 # 代码沙箱配置
 codesandbox:
-  type: example
+  type: remote

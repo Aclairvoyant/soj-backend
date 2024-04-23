@@ -26,6 +26,7 @@ import com.sjdddd.sojbackend.model.enums.JudgeInfoMessageEnum;
 import com.sjdddd.sojbackend.model.enums.QuestionSubmitLanguageEnum;
 import com.sjdddd.sojbackend.model.enums.QuestionSubmitStatusEnum;
 import com.sjdddd.sojbackend.model.vo.*;
+import com.sjdddd.sojbackend.mq.CodeMqProducer;
 import com.sjdddd.sojbackend.service.QuestionService;
 import com.sjdddd.sojbackend.service.QuestionSubmitService;
 import com.sjdddd.sojbackend.service.UserService;
@@ -43,6 +44,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
+import static com.sjdddd.sojbackend.constant.MqConstant.CODE_EXCHANGE_NAME;
+import static com.sjdddd.sojbackend.constant.MqConstant.CODE_ROUTING_KEY;
 
 /**
 * @author K
@@ -65,6 +69,9 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
     @Resource
     @Lazy
     private JudgeService judgeService;
+
+    @Resource
+    private CodeMqProducer codeMqProducer;
 
     /**
      * 提交题目
@@ -113,7 +120,11 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         questionService.updateById(question);
 
         // 执行判题服务
-        CompletableFuture.runAsync(() -> judgeService.doJudge(questionSubmitId));
+//        CompletableFuture.runAsync(() -> judgeService.doJudge(questionSubmitId));
+
+        // 生产者发送消息
+        codeMqProducer.sendMessage(CODE_EXCHANGE_NAME, CODE_ROUTING_KEY, String.valueOf(questionSubmitId));
+
         return questionSubmitId;
     }
 
@@ -193,14 +204,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
                     questionSubmitVO.setUserVO(userVO);
                     String judgeInfo = m.getJudgeInfo();
                     JudgeInfo bean = JSONUtil.toBean(judgeInfo, JudgeInfo.class);
-                    String message = bean.getMessage();
-//                    if (message != null) {
-//                        questionSubmitVO.setJudgeInfo(Objects.requireNonNull(JudgeInfoMessageEnum.getEnumByValue(message)).getText());
-//                        questionSubmitVO.setDetailsInfo(bean);
-//                    } else {
-//                        questionSubmitVO.setJudgeInfo("暂无判题信息");
-//                        questionSubmitVO.setDetailsInfo(null);
-//                    }
+
                     //获取判题信息，设置到对象中去
                     Long questionId = m.getQuestionId();
                     Question question = questionService.getById(questionId);

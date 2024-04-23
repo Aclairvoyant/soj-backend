@@ -11,7 +11,7 @@ import com.sjdddd.sojbackend.common.ResultUtils;
 import com.sjdddd.sojbackend.constant.UserConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.exception.ThrowUtils;
-import com.sjdddd.sojbackend.model.dto.post.PostAddRequest;
+import com.sjdddd.sojbackend.manager.RedisLimiterManager;
 import com.sjdddd.sojbackend.model.dto.question.*;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitQueryRequest;
@@ -53,16 +53,29 @@ public class QuestionController {
     @Resource
     private QuestionCommentService questionCommentService;
 
+    @Resource
+    private RedisLimiterManager redisLimiterManager;
+
     private final static Gson GSON = new Gson();
 
     // region 增删改查
 
-    // todo: 修改获取题目答案逻辑
     @ApiOperation("获取题目答案")
     @GetMapping("/getQuestionAnswer")
-    public BaseResponse<String> getQuestionAnswer(Long questionId) {
-        String answer = questionService.getQuestionAnswerById(questionId);
-        return ResultUtils.success(answer);
+    public BaseResponse<String> getQuestionAnswer(Long questionId, HttpServletRequest request) {
+        // 如果通过该题目后，才可获取题目答案
+        Question question = questionService.getById(questionId);
+        if (question == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        // 查询该用户是否已经解决过该题目
+        long count = questionSolveService.count(new QueryWrapper<QuestionSolve>()
+                .eq("questionId", questionId)
+                .eq("userId", userService.getLoginUser(request).getId()));
+        if (count <= 0) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无法查看答案，请先尝试解决该题目");
+        }
+        return ResultUtils.success(question.getAnswer());
     }
 
     /**
@@ -130,7 +143,11 @@ public class QuestionController {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         boolean b = questionService.removeById(id);
-        return ResultUtils.success(b);
+        // 删除提交记录
+        boolean submitRemove = questionSubmitService.remove(new QueryWrapper<QuestionSubmit>().eq("questionId", id));
+        // 删除评论
+        boolean commentRemove = questionCommentService.remove(new QueryWrapper<QuestionComment>().eq("questionId", id));
+        return ResultUtils.success(b && submitRemove && commentRemove);
     }
 
     /**
@@ -345,13 +362,18 @@ public class QuestionController {
      */
     @PostMapping("/question_submit/do")
     @ApiOperation("提交题目")
-    public BaseResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
-                                               HttpServletRequest request) {
+    public BaseResponse doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
+                                         HttpServletRequest request) {
         if (questionSubmitAddRequest == null || questionSubmitAddRequest.getQuestionId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // 登录才能提交
         final User loginUser = userService.getLoginUser(request);
+        // 限流
+        boolean rateLimit = redisLimiterManager.doRateLimit(loginUser.getId().toString());
+        if (!rateLimit) {
+            return ResultUtils.error(ErrorCode.TOO_MANY_REQUEST, "提交过于频繁,请稍后重试");
+        }
         long questionSubmitId = questionSubmitService.doQuestionSubmit(questionSubmitAddRequest, loginUser);
         return ResultUtils.success(questionSubmitId);
     }
