@@ -35,7 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -187,13 +189,16 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         }
         // 按标题检索
         if (StringUtils.isNotBlank(title)) {
-            boolQueryBuilder.should(QueryBuilders.matchQuery("title", title));
-            boolQueryBuilder.minimumShouldMatch(1);
+            QueryBuilder fuzzyQuery = QueryBuilders.fuzzyQuery("title", title)
+                    .fuzziness(Fuzziness.AUTO);
+            boolQueryBuilder.should(fuzzyQuery);
         }
+
         // 按内容检索
         if (StringUtils.isNotBlank(content)) {
-            boolQueryBuilder.should(QueryBuilders.matchQuery("content", content));
-            boolQueryBuilder.minimumShouldMatch(1);
+            QueryBuilder fuzzyQuery = QueryBuilders.fuzzyQuery("content", content)
+                    .fuzziness(Fuzziness.AUTO);
+            boolQueryBuilder.should(fuzzyQuery);
         }
         // 排序
         SortBuilder<?> sortBuilder = SortBuilders.scoreSort();

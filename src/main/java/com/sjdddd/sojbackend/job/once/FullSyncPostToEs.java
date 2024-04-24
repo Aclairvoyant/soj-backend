@@ -10,12 +10,13 @@ import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
 
 /**
  * 全量同步帖子到 es
  */
-// todo 取消注释开启任务
-//@Component
+
+@Component
 @Slf4j
 public class FullSyncPostToEs implements CommandLineRunner {
 
@@ -28,6 +29,8 @@ public class FullSyncPostToEs implements CommandLineRunner {
     @Override
     public void run(String... args) {
         List<Post> postList = postService.list();
+        log.info("======================================");
+        log.info("postList size: {}", postList.size());
         if (CollectionUtils.isEmpty(postList)) {
             return;
         }
@@ -38,7 +41,14 @@ public class FullSyncPostToEs implements CommandLineRunner {
         for (int i = 0; i < total; i += pageSize) {
             int end = Math.min(i + pageSize, total);
             log.info("sync from {} to {}", i, end);
-            postEsDao.saveAll(postEsDTOList.subList(i, end));
+//            postEsDao.saveAll(postEsDTOList.subList(i, end));
+            try {
+                postEsDao.saveAll(postEsDTOList.subList(i, end));
+            } catch (RuntimeException e) {
+                log.error("Failed to execute bulk operation: {}", e.getMessage(), e);
+                // Optionally, log the response body or more details if available
+            }
+
         }
         log.info("FullSyncPostToEs end, total {}", total);
     }

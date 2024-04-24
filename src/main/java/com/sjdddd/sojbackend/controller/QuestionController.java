@@ -22,6 +22,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -55,6 +57,9 @@ public class QuestionController {
 
     @Resource
     private RedisLimiterManager redisLimiterManager;
+
+    @Resource
+    private RedisTemplate<String, Object> redisObjTemplate;
 
     private final static Gson GSON = new Gson();
 
@@ -246,9 +251,30 @@ public class QuestionController {
         long size = questionQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<Question> questionPage = questionService.page(new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest));
-        return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
+//        Page<Question> questionPage = questionService.page(new Page<>(current, size),
+//                questionService.getQueryWrapper(questionQueryRequest));
+//        return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
+
+        String cacheKey = "questionsPage:" + current + ":" + size;
+        ValueOperations<String, Object> valueOperations = redisObjTemplate.opsForValue();
+
+        // 尝试从缓存获取数据
+        Page<QuestionVO> cachedPage = (Page<QuestionVO>) valueOperations.get(cacheKey);
+        if (cachedPage != null) {
+            return ResultUtils.success(cachedPage);
+        }
+
+        // 缓存未命中，查询数据库
+        Page<Question> questionPage = questionService.page(
+                new Page<>(current, size),
+                questionService.getQueryWrapper(questionQueryRequest)
+        );
+        Page<QuestionVO> voPage = questionService.getQuestionVOPage(questionPage, request);
+
+        // 将结果存入Redis
+        valueOperations.set(cacheKey, voPage);
+
+        return ResultUtils.success(voPage);
     }
 
     /**
