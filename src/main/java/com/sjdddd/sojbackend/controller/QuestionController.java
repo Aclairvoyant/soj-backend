@@ -22,6 +22,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.bind.annotation.*;
@@ -93,6 +96,7 @@ public class QuestionController {
     @PostMapping("/add")
     @ApiOperation("新增题目")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @CacheEvict(value = "questionPage", allEntries = true)
     public BaseResponse<Long> addQuestion(@RequestBody QuestionAddRequest questionAddRequest, HttpServletRequest request) {
         if (questionAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -121,6 +125,8 @@ public class QuestionController {
         boolean result = questionService.save(question);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         long newQuestionId = question.getId();
+        // 保存成功后，主动缓存进去
+        redisObjTemplate.opsForValue().set("question::" + newQuestionId, question);
         return ResultUtils.success(newQuestionId);
     }
 
@@ -134,6 +140,7 @@ public class QuestionController {
     @PostMapping("/delete")
     @ApiOperation("删除题目")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @CacheEvict(value = {"question", "questionPage"}, allEntries = true)
     public BaseResponse<Boolean> deleteQuestion(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -190,6 +197,12 @@ public class QuestionController {
         Question oldQuestion = questionService.getById(id);
         ThrowUtils.throwIf(oldQuestion == null, ErrorCode.NOT_FOUND_ERROR);
         boolean result = questionService.updateById(question);
+        if(result) {
+            // 更新成功后，主动缓存进去
+            redisObjTemplate.opsForValue().set("question::" + id, question);
+        } else {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR);
+        }
         return ResultUtils.success(result);
     }
 
@@ -255,27 +268,37 @@ public class QuestionController {
 //                questionService.getQueryWrapper(questionQueryRequest));
 //        return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
 
-        String cacheKey = "questionsPage:" + current + ":" + size;
-        ValueOperations<String, Object> valueOperations = redisObjTemplate.opsForValue();
+//        String cacheKey = "questionsPage:" + current + ":" + size;
+//        ValueOperations<String, Object> valueOperations = redisObjTemplate.opsForValue();
+//
+//        // 尝试从缓存获取数据
+//        Page<QuestionVO> cachedPage = (Page<QuestionVO>) valueOperations.get(cacheKey);
+//        if (cachedPage != null) {
+//            return ResultUtils.success(cachedPage);
+//        }
+//
+//        // 缓存未命中，查询数据库
+//        Page<Question> questionPage = questionService.page(
+//                new Page<>(current, size),
+//                questionService.getQueryWrapper(questionQueryRequest)
+//        );
+//        Page<QuestionVO> voPage = questionService.getQuestionVOPage(questionPage, request);
+//
+//        // 将结果存入Redis
+//        valueOperations.set(cacheKey, voPage);
 
-        // 尝试从缓存获取数据
-        Page<QuestionVO> cachedPage = (Page<QuestionVO>) valueOperations.get(cacheKey);
-        if (cachedPage != null) {
-            return ResultUtils.success(cachedPage);
-        }
-
-        // 缓存未命中，查询数据库
-        Page<Question> questionPage = questionService.page(
-                new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest)
+        //return ResultUtils.success(voPage);
+        // 直接调用带缓存的 Service 方法
+        Page<QuestionVO> voPage = questionService.getQuestionVOPage(
+                questionQueryRequest.getCurrent(),
+                questionQueryRequest.getPageSize(),
+                questionService.getQueryWrapper(questionQueryRequest),
+                request
         );
-        Page<QuestionVO> voPage = questionService.getQuestionVOPage(questionPage, request);
-
-        // 将结果存入Redis
-        valueOperations.set(cacheKey, voPage);
-
         return ResultUtils.success(voPage);
     }
+
+
 
     /**
      * 获取所有题目

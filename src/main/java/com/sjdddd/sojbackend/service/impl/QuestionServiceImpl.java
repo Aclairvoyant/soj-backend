@@ -1,5 +1,6 @@
 package com.sjdddd.sojbackend.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -22,6 +23,7 @@ import com.sjdddd.sojbackend.utils.SqlUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -165,6 +167,24 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);
         return questionVOPage;
+    }
+
+    /**
+     * 带缓存的分页查询业务方法
+     */
+    @Override
+    @Cacheable(
+            cacheNames = "questionsPage",
+            key = "#current + ':' + #size + ':' + #wrapper.hashCode()"
+    )
+    public Page<QuestionVO> getQuestionVOPage(long current,
+                                              long size,
+                                              Wrapper<Question> wrapper,
+                                              HttpServletRequest request) {
+        // 1）先从 DB 分页查出实体
+        Page<Question> page = this.page(new Page<>(current, size), wrapper);
+        // 2）复用已有逻辑把 Page<Question> 转成 Page<QuestionVO>
+        return this.getQuestionVOPage(page, request);
     }
 
     @Override

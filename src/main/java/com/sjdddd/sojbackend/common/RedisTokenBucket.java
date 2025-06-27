@@ -12,7 +12,7 @@ public class RedisTokenBucket {
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
 
-    private final long EXPIRE_TIME = 400; //400秒后过期
+    private final long EXPIRE_TIME = 300; //300秒后过期
 
     /**
      * 令牌桶算法，一分钟以内，每个手机号只能发送一次

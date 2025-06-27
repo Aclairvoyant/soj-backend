@@ -17,6 +17,7 @@ import com.sjdddd.sojbackend.mapper.QuestionSubmitMapper;
 import com.sjdddd.sojbackend.judge.codesandbox.model.JudgeInfo;
 import com.sjdddd.sojbackend.model.dto.question.QuestionRunRequest;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitAddRequest;
+import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitAnalysisRequest;
 import com.sjdddd.sojbackend.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.sjdddd.sojbackend.model.entity.Question;
 import com.sjdddd.sojbackend.model.entity.QuestionSubmit;
@@ -31,8 +32,10 @@ import com.sjdddd.sojbackend.service.QuestionService;
 import com.sjdddd.sojbackend.service.QuestionSubmitService;
 import com.sjdddd.sojbackend.service.UserService;
 import com.sjdddd.sojbackend.utils.SqlUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -54,6 +57,7 @@ import static com.sjdddd.sojbackend.constant.MqConstant.CODE_ROUTING_KEY;
 * @createDate 2024-03-03 15:41:23
 */
 @Service
+@Slf4j
 public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper, QuestionSubmit>
     implements QuestionSubmitService{
 
@@ -72,6 +76,9 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
 
     @Resource
     private CodeMqProducer codeMqProducer;
+
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 提交题目
@@ -125,6 +132,21 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         // 生产者发送消息
         codeMqProducer.sendMessage(CODE_EXCHANGE_NAME, CODE_ROUTING_KEY, String.valueOf(questionSubmitId));
 
+        // ========== 新增：发送代码分析消息到推荐服务 ==========
+        QuestionSubmitAnalysisRequest analysisMessage = new QuestionSubmitAnalysisRequest(
+                questionSubmitId,
+                userId,
+                questionId,
+                questionSubmitAddRequest.getCode(),
+                questionSubmitAddRequest.getLanguage()
+        );
+
+        rabbitTemplate.convertAndSend(
+                "recommendExchange",  // 推荐服务交换机名称
+                "analysis.task",
+                analysisMessage
+        );
+
         return questionSubmitId;
     }
 
@@ -173,8 +195,9 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         Long userId = loginUser.getId();
 
         // 非本人提交的代码 或者 也不是管理员
-        if (userId != questionSubmit.getUserId() && !userService.isAdmin(loginUser)) {
-            questionSubmitVO.setCode(null);
+        if (!Objects.equals(userId, questionSubmit.getUserId()) && !userService.isAdmin(loginUser)) {
+//            log.error("非本人提交的代码 或者 也不是管理员" + "loginUser:" + userId + " " + "提交的：" + questionSubmit.getUserId());
+            questionSubmitVO.setCode("非本人提交的代码,无法查看");
         }
         return questionSubmitVO;
     }

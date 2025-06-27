@@ -15,13 +15,14 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.*;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -125,5 +126,39 @@ public class RedisConfig extends CachingConfigurerSupport {
         timeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(timeFormatter));
         timeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(timeFormatter));
         objectMapper.registerModule(timeModule);
+    }
+
+    /**
+     * 定制 Spring Cache 在 Redis 中的序列化方式：
+     * key 用 String，value 用 Jackson JSON 序列化
+     */
+    @Bean
+    public RedisCacheConfiguration redisCacheConfiguration() {
+        // JSON 序列化器，能够自动带上类型信息，反序列化时回到原类
+        GenericJackson2JsonRedisSerializer jsonSerializer =
+                new GenericJackson2JsonRedisSerializer();
+
+        return RedisCacheConfiguration.defaultCacheConfig()
+                // key 和 hash key 都用字符串
+                .serializeKeysWith(RedisSerializationContext.SerializationPair
+                        .fromSerializer(new StringRedisSerializer()))
+                // value 和 hash value 都用 JSON
+                .serializeValuesWith(RedisSerializationContext.SerializationPair
+                        .fromSerializer(jsonSerializer))
+                // 可选：全局缓存过期时间，12 小时
+                .entryTtl(Duration.ofHours(12));
+    }
+
+    /**
+     * 使用上面那个 redisCacheConfiguration 来构建 CacheManager，
+     * 让所有 @Cacheable / @CacheEvict 等注解都走这个 JSON 化的配置。
+     */
+    @Bean
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        return RedisCacheManager.builder(connectionFactory)
+                // 把默认 cacheNames 都应用上面定义的序列化配置
+                .cacheDefaults(redisCacheConfiguration())
+                .transactionAware()
+                .build();
     }
 }
