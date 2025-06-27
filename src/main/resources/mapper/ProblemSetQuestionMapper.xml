@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sjdddd.sojbackend.mapper.ProblemSetQuestionMapper">
+    <resultMap id="BaseResultMap" type="com.sjdddd.sojbackend.model.entity.ProblemSetQuestion">
+        <id column="id" property="id" />
+        <result column="problemSetId" property="problemSetId" />
+        <result column="questionId" property="questionId" />
+        <result column="sortOrder" property="sortOrder" />
+        <result column="createTime" property="createTime" />
+        <result column="updateTime" property="updateTime" />
+        <result column="isDelete" property="isDelete" />
+    </resultMap>
+</mapper> 
