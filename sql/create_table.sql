@@ -166,3 +166,45 @@ CREATE TABLE IF NOT EXISTS question_comment
     INDEX idx_postId (questionId),
     INDEX idx_userId (userId)
 ) COMMENT '题目评论' COLLATE = utf8mb4_unicode_ci;
+
+-- 题单表
+DROP TABLE IF EXISTS `problem_set`;
+CREATE TABLE `problem_set`
+(
+    `id`          bigint                                                         NOT NULL AUTO_INCREMENT COMMENT '题单id',
+    `name`        varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NOT NULL COMMENT '题单名称',
+    `description` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL     DEFAULT NULL COMMENT '题单描述',
+    `isPublic`    tinyint                                                        NOT NULL DEFAULT 1 COMMENT '是否公开 0-私有 1-公开',
+    `isOfficial`  tinyint                                                        NOT NULL DEFAULT 0 COMMENT '是否官方题单 0-用户题单 1-官方题单',
+    `userId`      bigint                                                         NOT NULL COMMENT '创建者id',
+    `createTime`  datetime                                                       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updateTime`  datetime                                                       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `isDelete`    tinyint                                                        NOT NULL DEFAULT 0 COMMENT '是否删除',
+    PRIMARY KEY (`id`) USING BTREE,
+    INDEX `idx_user_id` (`userId` ASC) USING BTREE,
+    INDEX `idx_is_public` (`isPublic` ASC) USING BTREE,
+    INDEX `idx_is_official` (`isOfficial` ASC) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 1938571584115912707
+  CHARACTER SET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '题单'
+  ROW_FORMAT = Dynamic;
+
+-- 题单-题目关联表
+DROP TABLE IF EXISTS `problem_set_question`;
+CREATE TABLE `problem_set_question`
+(
+    `id`           bigint   NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `problemSetId` bigint   NOT NULL COMMENT '题单id',
+    `questionId`   bigint   NOT NULL COMMENT '题目id',
+    `sortOrder`    int      NOT NULL DEFAULT 0 COMMENT '题目排序',
+    `createTime`   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updateTime`   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `isDelete`     tinyint  NOT NULL DEFAULT 0 COMMENT '是否删除',
+    PRIMARY KEY (`id`) USING BTREE,
+    INDEX `idx_question_set_id` (`problemSetId` ASC) USING BTREE,
+    INDEX `idx_question_id` (`questionId` ASC) USING BTREE
+) ENGINE = InnoDB
+  CHARACTER SET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '题单-题目关联'
+  ROW_FORMAT = Dynamic;

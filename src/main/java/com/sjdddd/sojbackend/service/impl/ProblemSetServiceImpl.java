@@ -94,11 +94,10 @@ public class ProblemSetServiceImpl extends ServiceImpl<ProblemSetMapper, Problem
         }
         User loginUser = userService.getLoginUser(request);
         checkPermission(problemSet, loginUser);
-        problemSet.setIsDelete(1);
-        this.updateById(problemSet);
+        this.removeById(id);
         // 逻辑删除关联题目
         QueryWrapper<ProblemSetQuestion> qw = new QueryWrapper<>();
-        qw.eq("questionSetId", id);
+        qw.eq("problemSetId", id);
         List<ProblemSetQuestion> rels = problemSetQuestionMapper.selectList(qw);
         for (ProblemSetQuestion rel : rels) {
             rel.setIsDelete(1);
@@ -121,7 +120,7 @@ public class ProblemSetServiceImpl extends ServiceImpl<ProblemSetMapper, Problem
         // 题目关联更新（全量覆盖）
         if (updateRequest.getQuestionIdList() != null) {
             QueryWrapper<ProblemSetQuestion> qw = new QueryWrapper<>();
-            qw.eq("questionSetId", problemSet.getId());
+            qw.eq("problemSetId", problemSet.getId());
             problemSetQuestionMapper.delete(qw);
             int order = 0;
             for (Long qid : updateRequest.getQuestionIdList()) {
@@ -153,7 +152,7 @@ public class ProblemSetServiceImpl extends ServiceImpl<ProblemSetMapper, Problem
         BeanUtils.copyProperties(problemSet, vo);
         // 题目列表
         QueryWrapper<ProblemSetQuestion> qw = new QueryWrapper<>();
-        qw.eq("questionSetId", id).eq("isDelete", 0).orderByAsc("sortOrder");
+        qw.eq("problemSetId", id).eq("isDelete", 0).orderByAsc("sortOrder");
         List<ProblemSetQuestion> rels = problemSetQuestionMapper.selectList(qw);
         List<Long> qids = rels.stream().map(ProblemSetQuestion::getQuestionId).collect(Collectors.toList());
         List<QuestionVO> questionVOList = new ArrayList<>();
@@ -176,13 +175,24 @@ public class ProblemSetServiceImpl extends ServiceImpl<ProblemSetMapper, Problem
 
     @Override
     public Page<ProblemSetVO> listProblemSetVOByPage(ProblemSetQueryRequest queryRequest, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "请先登录");
+        }
         QueryWrapper<ProblemSet> qw = new QueryWrapper<>();
+
+        // 管理员可以查看所有题单，普通用户只能查看自己的题单
+        if (!"admin".equals(loginUser.getUserRole())) {
+            qw.eq("userId", loginUser.getId());
+        }
+
+        // 查询条件
         if (queryRequest.getId() != null) qw.eq("id", queryRequest.getId());
         if (queryRequest.getName() != null) qw.like("name", queryRequest.getName());
         if (queryRequest.getIsPublic() != null) qw.eq("isPublic", queryRequest.getIsPublic());
         if (queryRequest.getIsOfficial() != null) qw.eq("isOfficial", queryRequest.getIsOfficial());
-        if (queryRequest.getUserId() != null) qw.eq("userId", queryRequest.getUserId());
-        qw.eq("isDelete", 0);
+        // 不允许前端传 userId 条件，防止越权
+        qw.eq("isDelete", false);
         Page<ProblemSet> page = this.page(new Page<>(queryRequest.getCurrent(), queryRequest.getPageSize()), qw);
         Page<ProblemSetVO> voPage = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
         List<ProblemSetVO> voList = page.getRecords().stream().map(qs -> getProblemSetVO(qs.getId(), request)).collect(Collectors.toList());
@@ -215,7 +225,7 @@ public class ProblemSetServiceImpl extends ServiceImpl<ProblemSetMapper, Problem
         checkPermission(problemSet, loginUser);
         // 检查题目是否已存在
         QueryWrapper<ProblemSetQuestion> qw = new QueryWrapper<>();
-        qw.eq("questionSetId", setId).eq("questionId", questionId).eq("isDelete", 0);
+        qw.eq("problemSetId", setId).eq("questionId", questionId).eq("isDelete", 0);
         if (problemSetQuestionMapper.selectCount(qw) > 0) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "题目已在题单中");
         }
@@ -238,7 +248,7 @@ public class ProblemSetServiceImpl extends ServiceImpl<ProblemSetMapper, Problem
         User loginUser = userService.getLoginUser(request);
         checkPermission(problemSet, loginUser);
         QueryWrapper<ProblemSetQuestion> qw = new QueryWrapper<>();
-        qw.eq("questionSetId", setId).eq("questionId", questionId).eq("isDelete", 0);
+        qw.eq("problemSetId", setId).eq("questionId", questionId).eq("isDelete", 0);
         ProblemSetQuestion rel = problemSetQuestionMapper.selectOne(qw);
         if (rel == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "题目未在题单中");
@@ -258,7 +268,7 @@ public class ProblemSetServiceImpl extends ServiceImpl<ProblemSetMapper, Problem
         User loginUser = userService.getLoginUser(request);
         checkPermission(problemSet, loginUser);
         QueryWrapper<ProblemSetQuestion> qw = new QueryWrapper<>();
-        qw.eq("questionSetId", setId).eq("questionId", questionId).eq("isDelete", 0);
+        qw.eq("problemSetId", setId).eq("questionId", questionId).eq("isDelete", 0);
         ProblemSetQuestion rel = problemSetQuestionMapper.selectOne(qw);
         if (rel == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "题目未在题单中");
@@ -281,7 +291,7 @@ public class ProblemSetServiceImpl extends ServiceImpl<ProblemSetMapper, Problem
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限查看该题单");
         }
         QueryWrapper<ProblemSetQuestion> qw = new QueryWrapper<>();
-        qw.eq("questionSetId", setId).eq("isDelete", 0).orderByAsc("sortOrder");
+        qw.eq("problemSetId", setId).eq("isDelete", 0).orderByAsc("sortOrder");
         List<ProblemSetQuestion> rels = problemSetQuestionMapper.selectList(qw);
         List<Long> qids = rels.stream().map(ProblemSetQuestion::getQuestionId).collect(Collectors.toList());
         List<QuestionVO> questionVOList = new ArrayList<>();

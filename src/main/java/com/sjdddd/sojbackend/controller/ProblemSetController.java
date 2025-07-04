@@ -2,6 +2,7 @@ package com.sjdddd.sojbackend.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sjdddd.sojbackend.annotation.AuthCheck;
+import com.sjdddd.sojbackend.annotation.LoginCheck;
 import com.sjdddd.sojbackend.common.BaseResponse;
 import com.sjdddd.sojbackend.common.ErrorCode;
 import com.sjdddd.sojbackend.common.ResultUtils;
@@ -30,7 +31,7 @@ public class ProblemSetController {
     private ProblemSetService problemSetService;
 
     @PostMapping("/add")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @LoginCheck
     public BaseResponse<Long> addProblemSet(@RequestBody ProblemSetAddRequest addRequest, HttpServletRequest request) {
         if (addRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -40,7 +41,7 @@ public class ProblemSetController {
     }
 
     @PostMapping("/delete")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @LoginCheck
     public BaseResponse<Boolean> deleteProblemSet(@RequestParam Long id, HttpServletRequest request) {
         if (id == null || id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -50,7 +51,7 @@ public class ProblemSetController {
     }
 
     @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @LoginCheck
     public BaseResponse<Boolean> updateProblemSet(@RequestBody ProblemSetUpdateRequest updateRequest, HttpServletRequest request) {
         if (updateRequest == null || updateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -75,6 +76,7 @@ public class ProblemSetController {
     }
 
     @PostMapping("/list/all/vo")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<List<ProblemSetVO>> listAllQuestionSetVO(@RequestBody ProblemSetQueryRequest queryRequest) {
         List<ProblemSetVO> voList = problemSetService.listAllProblemSetVO(queryRequest);
         return ResultUtils.success(voList);
