@@ -19,6 +19,7 @@ import com.sjdddd.sojbackend.model.enums.QuestionSubmitStatusEnum;
 import com.sjdddd.sojbackend.service.QuestionService;
 import com.sjdddd.sojbackend.service.QuestionSolveService;
 import com.sjdddd.sojbackend.service.QuestionSubmitService;
+import com.sjdddd.sojbackend.service.UserCheckinService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,9 @@ public class JudgeServiceImpl implements JudgeService{
 
     @Resource
     private QuestionSolveService questionSolveService;
+
+    @Resource
+    private UserCheckinService userCheckinService;
 
     @Transactional
     @Override
@@ -121,6 +125,8 @@ public class JudgeServiceImpl implements JudgeService{
 
             questionSolveService.createQuestionSolve(questionSolve);
             questionSolveService.updateQuestionSolvedCount(id);
+            // 判题AC时自动打卡
+            userCheckinService.doCheckin(questionSubmit.getUserId());
         }
         // 修改数据库中的判题结果
         submitUpdate = new QuestionSubmit();

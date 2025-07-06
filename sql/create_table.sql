@@ -208,3 +208,13 @@ CREATE TABLE `problem_set_question`
   CHARACTER SET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = '题单-题目关联'
   ROW_FORMAT = Dynamic;
+
+-- 用户每日打卡表
+CREATE TABLE IF NOT EXISTS user_checkin (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    userId BIGINT NOT NULL COMMENT '用户ID',
+    checkinDate DATE NOT NULL COMMENT '打卡日期',
+    createTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '创建时间',
+    UNIQUE KEY uniq_user_date (userId, checkinDate),
+    INDEX idx_user_id (userId)
+) COMMENT='用户每日打卡表' COLLATE = utf8mb4_unicode_ci;
