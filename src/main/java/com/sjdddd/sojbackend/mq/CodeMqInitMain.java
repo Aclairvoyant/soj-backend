@@ -4,6 +4,11 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.context.annotation.Bean;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +28,7 @@ public class CodeMqInitMain {
         try {
             ConnectionFactory factory = new ConnectionFactory();
             // todo 配置远程服务MQ信息
-            factory.setHost("127.0.0.1");
+            factory.setHost("47.101.68.54");
             factory.setPassword("shenjiadong1010");
             factory.setUsername("soj");
             Connection connection = factory.newConnection();

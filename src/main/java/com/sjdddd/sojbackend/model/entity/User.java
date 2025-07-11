@@ -83,6 +83,11 @@ public class User implements Serializable {
     @TableLogic
     private Integer isDelete;
 
+    /**
+     * 最后登录时间
+     */
+    private Date lastLoginTime;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

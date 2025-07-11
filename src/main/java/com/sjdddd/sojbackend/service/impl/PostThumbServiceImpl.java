@@ -3,11 +3,13 @@ package com.sjdddd.sojbackend.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sjdddd.sojbackend.common.ErrorCode;
+import com.sjdddd.sojbackend.constant.MsgConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.mapper.PostThumbMapper;
 import com.sjdddd.sojbackend.model.entity.Post;
 import com.sjdddd.sojbackend.model.entity.PostThumb;
 import com.sjdddd.sojbackend.model.entity.User;
+import com.sjdddd.sojbackend.service.MsgRemindService;
 import com.sjdddd.sojbackend.service.PostService;
 import com.sjdddd.sojbackend.service.PostThumbService;
 import javax.annotation.Resource;
@@ -26,6 +28,9 @@ public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb
 
     @Resource
     private PostService postService;
+
+    @Resource
+    private MsgRemindService msgRemindService;
 
     /**
      * 点赞
@@ -90,6 +95,21 @@ public class PostThumbServiceImpl extends ServiceImpl<PostThumbMapper, PostThumb
                         .eq("id", postId)
                         .setSql("thumbNum = thumbNum + 1")
                         .update();
+                // 点赞成功后，给帖子作者发送消息提醒
+                Post post = postService.getById(postId);
+                if (post != null && userId != post.getUserId()) {
+                    msgRemindService.addRemind(
+                        MsgConstant.ACTION_LIKE_POST,
+                        postId,
+                        MsgConstant.SOURCE_TYPE_POST,
+                        post.getTitle(),
+                        null,
+                        null,
+                        "/post/" + postId,
+                        userId,
+                        post.getUserId()
+                    );
+                }
                 return result ? 1 : 0;
             } else {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR);

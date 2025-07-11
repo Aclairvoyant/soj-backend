@@ -15,6 +15,9 @@ import com.sjdddd.sojbackend.model.dto.problemset.ProblemSetUpdateRequest;
 import com.sjdddd.sojbackend.model.vo.ProblemSetVO;
 import com.sjdddd.sojbackend.model.vo.QuestionVO;
 import com.sjdddd.sojbackend.service.ProblemSetService;
+import com.sjdddd.sojbackend.service.ProblemSetStatService;
+import com.sjdddd.sojbackend.service.UserService;
+import com.sjdddd.sojbackend.model.entity.User;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +32,12 @@ import java.util.List;
 public class ProblemSetController {
     @Resource
     private ProblemSetService problemSetService;
+    
+    @Resource
+    private ProblemSetStatService problemSetStatService;
+    
+    @Resource
+    private UserService userService;
 
     @PostMapping("/add")
     @LoginCheck
@@ -108,5 +117,17 @@ public class ProblemSetController {
     public BaseResponse<List<QuestionVO>> getQuestionListForPractice(@RequestParam Long setId, HttpServletRequest request) {
         List<QuestionVO> voList = problemSetService.getQuestionListForPractice(setId, request);
         return ResultUtils.success(voList);
+    }
+    
+    // 题单进度：获取用户在题单中的完成统计（基于question_solve表）
+    @GetMapping("/progress/stat")
+    @LoginCheck
+    public BaseResponse<ProblemSetStatService.ProblemSetProgressStat> getUserProgressStat(@RequestParam Long setId, HttpServletRequest request) {
+        if (setId == null || setId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        ProblemSetStatService.ProblemSetProgressStat stat = problemSetStatService.getUserProgressStat(loginUser.getId(), setId);
+        return ResultUtils.success(stat);
     }
 }

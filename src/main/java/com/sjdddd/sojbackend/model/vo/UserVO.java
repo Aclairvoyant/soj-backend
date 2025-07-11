@@ -42,5 +42,10 @@ public class UserVO implements Serializable {
      */
     private Date createTime;
 
+    /**
+     * 最后登录时间
+     */
+    private Date lastLoginTime;
+
     private static final long serialVersionUID = 1L;
 }

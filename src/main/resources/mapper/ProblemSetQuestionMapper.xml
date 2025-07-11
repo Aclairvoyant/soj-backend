@@ -10,4 +10,10 @@
         <result column="updateTime" property="updateTime" />
         <result column="isDelete" property="isDelete" />
     </resultMap>
+    
+    <select id="getProblemSetIdsByQuestionId" resultType="java.lang.Long">
+        SELECT problemSetId
+        FROM problem_set_question
+        WHERE questionId = #{questionId} AND isDelete = 0
+    </select>
 </mapper> 

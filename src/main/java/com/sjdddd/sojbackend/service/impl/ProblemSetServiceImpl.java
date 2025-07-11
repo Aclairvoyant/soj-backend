@@ -17,6 +17,7 @@ import com.sjdddd.sojbackend.service.ProblemSetService;
 import com.sjdddd.sojbackend.service.QuestionService;
 import com.sjdddd.sojbackend.service.UserService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,9 +59,19 @@ public class ProblemSetServiceImpl extends ServiceImpl<ProblemSetMapper, Problem
         BeanUtils.copyProperties(addRequest, problemSet);
         problemSet.setUserId(loginUser.getId());
         problemSet.setIsDelete(0);
+        String userRole = loginUser.getUserRole();
+
+        // 普通用户最多创建3个题单
+        if (!"admin".equals(userRole)) {
+            QueryWrapper<ProblemSet> qw = new QueryWrapper<>();
+            qw.eq("userId", loginUser.getId()).eq("isDelete", 0);
+            int count = Math.toIntExact(this.count(qw));
+            if (count >= 3) {
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "普通用户最多只能创建3个题单");
+            }
+        }
 
         // 判断是否为管理员创建 1-管理员创建 0-用户创建
-        String userRole = loginUser.getUserRole();
         if (userRole.equals("admin")) {
             problemSet.setIsOfficial(1);
         } else {

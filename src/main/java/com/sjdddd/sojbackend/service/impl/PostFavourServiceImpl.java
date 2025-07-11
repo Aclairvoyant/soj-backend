@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sjdddd.sojbackend.common.ErrorCode;
+import com.sjdddd.sojbackend.constant.MsgConstant;
 import com.sjdddd.sojbackend.exception.BusinessException;
 import com.sjdddd.sojbackend.mapper.PostFavourMapper;
 import com.sjdddd.sojbackend.model.entity.Post;
@@ -13,6 +14,7 @@ import com.sjdddd.sojbackend.model.entity.PostFavour;
 import com.sjdddd.sojbackend.model.entity.User;
 import com.sjdddd.sojbackend.service.PostFavourService;
 import com.sjdddd.sojbackend.service.PostService;
+import com.sjdddd.sojbackend.service.MsgRemindService;
 import javax.annotation.Resource;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,9 @@ public class PostFavourServiceImpl extends ServiceImpl<PostFavourMapper, PostFav
 
     @Resource
     private PostService postService;
+
+    @Resource
+    private MsgRemindService msgRemindService;
 
     /**
      * 帖子收藏
@@ -101,6 +106,21 @@ public class PostFavourServiceImpl extends ServiceImpl<PostFavourMapper, PostFav
                         .eq("id", postId)
                         .setSql("favourNum = favourNum + 1")
                         .update();
+                // 收藏成功后，给帖子作者发送消息提醒
+                Post post = postService.getById(postId);
+                if (post != null && userId != post.getUserId()) {
+                    msgRemindService.addRemind(
+                        MsgConstant.ACTION_LIKE_POST,
+                        postId,
+                        MsgConstant.SOURCE_TYPE_POST,
+                        post.getTitle(),
+                        null,
+                        null,
+                        "/post/" + postId,
+                        userId,
+                        post.getUserId()
+                    );
+                }
                 return result ? 1 : 0;
             } else {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR);

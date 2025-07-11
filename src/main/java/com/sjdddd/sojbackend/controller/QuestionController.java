@@ -465,6 +465,20 @@ public class QuestionController {
     }
 
     /**
+     * 获取用户已经解决的题目
+     */
+    @GetMapping("/getQuestionSolve")
+    @ApiOperation("获取用户已经解决的题目")
+    public BaseResponse<List<QuestionSolve>> getQuestionSolve(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        List<QuestionSolve> questionSolves = questionSolveService.list(new QueryWrapper<QuestionSolve>().eq("userId", loginUser.getId()));
+        return ResultUtils.success(questionSolves);
+    }
+
+    /**
      * 获取用户个人数据
      */
     @GetMapping("/get/id")

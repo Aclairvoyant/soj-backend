@@ -22,6 +22,7 @@ import com.sjdddd.sojbackend.service.UserService;
 import com.sjdddd.sojbackend.utils.MailUtils;
 import com.sjdddd.sojbackend.utils.SqlUtils;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -174,6 +175,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         // 3. 记录用户的登录态
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        // 4. 更新最后登录时间
+        user.setLastLoginTime(new Date());
+        this.updateById(user);
         return this.getLoginUserVO(user);
     }
 
@@ -205,6 +209,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
             // 记录用户的登录态
             request.getSession().setAttribute(USER_LOGIN_STATE, user);
+            // 更新最后登录时间
+            user.setLastLoginTime(new Date());
+            this.updateById(user);
             return getLoginUserVO(user);
         }
     }
@@ -353,7 +360,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
         }
         mailUtils.sendAuthCodeEmail(mail);
-        return ResultUtils.success(null);
+        return ResultUtils.success("发送验证码成功");
     }
 
 
@@ -388,6 +395,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         // 3. 记录用户的登录态
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        // 4. 更新最后登录时间
+        user.setLastLoginTime(new Date());
+        this.updateById(user);
         return ResultUtils.success(this.getLoginUserVO(user));
     }
 
@@ -429,7 +439,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         //删除redis中的数据
         mailUtils.deleteRedisEmail(email);
-        return ResultUtils.success(null);
+        return ResultUtils.success("修改密码成功");
     }
 
 }

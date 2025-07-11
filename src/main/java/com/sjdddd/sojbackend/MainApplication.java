@@ -10,6 +10,9 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import javax.annotation.PostConstruct;
+import java.util.TimeZone;
+
 /**
  * 主类（项目启动入口）
  */
@@ -28,4 +31,10 @@ public class MainApplication {
         SpringApplication.run(MainApplication.class, args);
     }
 
+    @PostConstruct
+    public void setTimeZone() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
+    }
 }
+
+

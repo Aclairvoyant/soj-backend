@@ -22,6 +22,7 @@ create table if not exists user
     createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete     tinyint      default 0                 not null comment '是否删除',
+    lastLoginTime DATETIME DEFAULT NULL COMMENT '最后登录时间',
     index idx_unionId (unionId)
 ) comment '用户' collate = utf8mb4_unicode_ci;
 
@@ -137,20 +138,20 @@ CREATE TABLE if not exists post_comment
 ) COLLATE = utf8mb4_unicode_ci COMMENT ='帖子评论';
 
 
--- 通知表
+-- 公告表
 create table if not exists announcement
 (
     id         bigint auto_increment comment 'id' primary key,
-    title      varchar(512)                       not null comment '通知标题',
-    content    text                               not null comment '通知内容',
+    title      varchar(512)                       not null comment '公告标题',
+    content    text                               not null comment '公告内容',
     userId     bigint                             not null comment '创建用户 id',
     createTime datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    status     int      default 0                 not null comment '通知状态（0 - 可见、1 - 隐藏）',
+    status     int      default 0                 not null comment '公告状态（0 - 可见、1 - 隐藏）',
     isDelete   tinyint  default 0                 not null comment '是否删除',
     index idx_userId (userId),
     index idx_announcementId (id)
-) COLLATE = utf8mb4_unicode_ci comment '通知';
+) COLLATE = utf8mb4_unicode_ci comment '公告';
 
 
 -- 题目评论表
@@ -218,3 +219,69 @@ CREATE TABLE IF NOT EXISTS user_checkin (
     UNIQUE KEY uniq_user_date (userId, checkinDate),
     INDEX idx_user_id (userId)
 ) COMMENT='用户每日打卡表' COLLATE = utf8mb4_unicode_ci;
+
+-- 管理员通知表
+DROP TABLE IF EXISTS `admin_sys_notice`;
+CREATE TABLE `admin_sys_notice`
+(
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `title`       VARCHAR(255)             DEFAULT NULL COMMENT '标题',
+    `content`     TEXT COMMENT '内容',
+    `type`        VARCHAR(64)              DEFAULT NULL COMMENT '指定发送用户类型',
+    `state`       TINYINT         NOT NULL DEFAULT 0 COMMENT '是否已拉取给用户 0-未拉取 1-已拉取',
+    `recipientId` BIGINT UNSIGNED          DEFAULT NULL COMMENT '接收通知的用户ID',
+    `adminId`     BIGINT UNSIGNED          DEFAULT NULL COMMENT '发送通知的管理员ID',
+    `createTime`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updateTime`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `isDelete`    TINYINT         NOT NULL DEFAULT 0 COMMENT '是否删除 0-否 1-是',
+    `problemSetId` BIGINT DEFAULT NULL COMMENT '关联题单id',
+    PRIMARY KEY (`id`),
+    KEY `idx_recipientId` (`recipientId`),
+    KEY `idx_adminId` (`adminId`),
+    KEY `idx_state` (`state`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='管理员通知表';
+
+-- 消息提醒表
+DROP TABLE IF EXISTS `msg_remind`;
+CREATE TABLE `msg_remind`
+(
+    `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `action`        VARCHAR(64)     NOT NULL COMMENT '动作类型，如Like_Post、Like_Discuss、Discuss、Reply等',
+    `sourceId`      BIGINT UNSIGNED          DEFAULT NULL COMMENT '消息来源ID，讨论ID或比赛ID',
+    `sourceType`    VARCHAR(64)              DEFAULT NULL COMMENT '事件源类型：Discussion、Contest等',
+    `sourceContent` VARCHAR(255)             DEFAULT NULL COMMENT '事件源内容，如回复内容、评论标题等',
+    `quoteId`       BIGINT UNSIGNED          DEFAULT NULL COMMENT '引用上一级评论或回复ID',
+    `quoteType`     VARCHAR(64)              DEFAULT NULL COMMENT '引用上一级类型：Comment、Reply',
+    `url`           VARCHAR(255)             DEFAULT NULL COMMENT '事件发生地点链接',
+    `state`         TINYINT         NOT NULL DEFAULT 0 COMMENT '是否已读 0-未读 1-已读',
+    `senderId`      BIGINT UNSIGNED          DEFAULT NULL COMMENT '操作者ID',
+    `recipientId`   BIGINT UNSIGNED          DEFAULT NULL COMMENT '接收用户ID',
+    `createTime`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updateTime`    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `isDelete`      TINYINT         NOT NULL DEFAULT 0 COMMENT '是否删除 0-否 1-是',
+    PRIMARY KEY (`id`),
+    KEY `idx_recipientId` (`recipientId`),
+    KEY `idx_senderId` (`senderId`),
+    KEY `idx_state` (`state`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='消息提醒表';
+
+-- 用户系统通知表
+DROP TABLE IF EXISTS `user_sys_notice`;
+CREATE TABLE `user_sys_notice`
+(
+    `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `noticeId`    BIGINT UNSIGNED          DEFAULT NULL COMMENT '系统通知ID',
+    `recipientId` BIGINT UNSIGNED          DEFAULT NULL COMMENT '接收通知的用户ID',
+    `type`        VARCHAR(32)              DEFAULT NULL COMMENT '消息类型，sys-系统通知，mine-我的信息',
+    `state`       TINYINT         NOT NULL DEFAULT 0 COMMENT '是否已读 0-未读 1-已读',
+    `createTime`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updateTime`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `isDelete`    TINYINT         NOT NULL DEFAULT 0 COMMENT '是否删除 0-否 1-是',
+    PRIMARY KEY (`id`),
+    KEY `idx_noticeId` (`noticeId`),
+    KEY `idx_recipientId` (`recipientId`),
+    KEY `idx_state` (`state`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4 COMMENT ='用户系统通知表';

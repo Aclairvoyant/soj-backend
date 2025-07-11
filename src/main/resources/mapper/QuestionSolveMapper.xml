@@ -20,4 +20,18 @@
         title,tags,createTime,
         updateTime,isDelete
     </sql>
+    
+    <select id="countCompletedInProblemSet" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM question_solve qs
+        WHERE qs.userId = #{userId} 
+          AND qs.isDelete = 0
+          AND EXISTS (
+              SELECT 1 
+              FROM problem_set_question psq 
+              WHERE psq.problemSetId = #{problemSetId} 
+                AND psq.questionId = qs.questionId 
+                AND psq.isDelete = 0
+          )
+    </select>
 </mapper>

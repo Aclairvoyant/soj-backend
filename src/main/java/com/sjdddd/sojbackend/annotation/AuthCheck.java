@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * 权限校验
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AuthCheck {
 
